@@ -8,12 +8,16 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.database import SessionLocal
 from app.models import ApiKey, Base
 from app.security import Client
 
 API_KEY = "test-key-123"
-CLIENT = Client(id="00000000-0000-0000-0000-000000000001", key_token=API_KEY, client_name="test", allowed_from_addresses=["noreply@x.com"])
+CLIENT = Client(
+    id="00000000-0000-0000-0000-000000000001",
+    key_token=API_KEY,
+    client_name="test",
+    allowed_from_addresses=["noreply@x.com"],
+)
 
 
 @pytest.fixture()
@@ -27,7 +31,13 @@ def db(monkeypatch):
     monkeypatch.setattr("app.database.SessionLocal", TestingSession)
     monkeypatch.setattr("app.main.SessionLocal", TestingSession)
     with TestingSession() as s:
-        s.add(ApiKey(key_token=API_KEY, client_name="test", allowed_from_addresses=["noreply@x.com"]))
+        s.add(
+            ApiKey(
+                key_token=API_KEY,
+                client_name="test",
+                allowed_from_addresses=["noreply@x.com"],
+            )
+        )
         s.commit()
     yield TestingSession
     engine.dispose()

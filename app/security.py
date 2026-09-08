@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -24,7 +24,7 @@ def _lookup_api_key(session: Session, key_token: str) -> ApiKey | None:
     ).scalar_one_or_none()
 
 
-def require_client(x_api_key: str = Header(alias="X-API-Key")) -> Client:
+def require_client(x_api_key: str | None = Header(default=None, alias="X-API-Key")) -> Client:
     """Authenticate caller via X-API-Key. 401 if missing/unknown/inactive."""
     if not x_api_key:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing API key")
@@ -47,10 +47,3 @@ def authorize_sender(client: Client, from_address: str) -> None:
             status.HTTP_403_FORBIDDEN,
             f"Sender {from_address!r} not allowed for this API key",
         )
-
-
-def client_and_authorized_sender(
-    client: Client = Depends(require_client),
-) -> Client:
-    """Dependency placeholder: sender check happens against payload in the route."""
-    return client

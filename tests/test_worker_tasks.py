@@ -1,9 +1,9 @@
 """Checks for the SMTP delivery task (mocked SMTP, fake DB row)."""
 
+import smtplib
 from unittest.mock import MagicMock, patch
 
 import pytest
-import smtplib
 
 from worker import tasks
 from worker.tasks import RETRY_DELAYS, send_email
@@ -22,8 +22,8 @@ def tx_row(monkeypatch):
 
 PAYLOAD = {
     "from_address": "noreply@x.com",
-    "to_addresses": ["to@y.com"],
-    "cc_addresses": [],
+    "to": ["to@y.com"],
+    "cc": [],
     "subject": "s",
     "text_content": "hello",
     "attachments": [],

@@ -1,8 +1,9 @@
 """FastAPI application: email send + status tracking endpoints."""
 
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, FastAPI, status
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
 from sqlalchemy import select
 
 from app.database import SessionLocal
@@ -13,10 +14,11 @@ from app.security import Client, authorize_sender, require_client
 from worker.tasks import send_email as send_email_task
 
 router = APIRouter(prefix="/api/v1/emails", tags=["emails"])
+CurrentClient = Annotated[Client, Depends(require_client)]
 
 
 @router.post("/send", response_model=SendAcceptedResponse, status_code=status.HTTP_202_ACCEPTED)
-def send_email(payload: EmailPayload, client: Client = Depends(require_client)) -> SendAcceptedResponse:
+def send_email(payload: EmailPayload, client: CurrentClient) -> SendAcceptedResponse:
     authorize_sender(client, payload.from_address)
     task_id = str(uuid.uuid4())
     with SessionLocal() as session:
@@ -38,7 +40,7 @@ def send_email(payload: EmailPayload, client: Client = Depends(require_client)) 
 
 
 @router.get("/{task_id}", response_model=StatusResponse)
-def get_status(task_id: str, client: Client = Depends(require_client)) -> StatusResponse:
+def get_status(task_id: str, client: CurrentClient) -> StatusResponse:
     with SessionLocal() as session:
         tx = session.execute(
             select(MailTransaction).where(

@@ -3,8 +3,7 @@
 import base64
 import os
 import smtplib
-import socket
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.message import EmailMessage
 from email.utils import make_msgid
 
@@ -68,6 +67,11 @@ def _send_via_smtp(msg: EmailMessage, envelope_to: list[str]) -> None:
         smtp.send_message(msg, from_addr=msg["From"], to_addrs=envelope_to)
 
 
+def _smtp_error_text(exc: smtplib.SMTPResponseException) -> str:
+    err = exc.smtp_error
+    return err.decode(errors="replace") if isinstance(err, bytes) else err
+
+
 def _load_tx(session, task_id: str) -> MailTransaction | None:
     return session.execute(
         select(MailTransaction).where(MailTransaction.task_id == task_id)
@@ -82,7 +86,7 @@ def _mark_status(task_id: str, *, status: str, error: str | None = None) -> None
         tx.status = status
         tx.error_message = error
         if status == "sent":
-            tx.delivered_at = datetime.now(timezone.utc)
+            tx.delivered_at = datetime.now(UTC)
         session.commit()
 
 
@@ -108,22 +112,23 @@ def _retry_or_fail(task, task_id: str, error: str) -> str:
 def send_email(self, task_id: str, payload: dict) -> str:
     msg = _build_message(
         from_address=payload["from_address"],
-        to_addresses=payload["to_addresses"],
-        cc_addresses=payload.get("cc_addresses", []),
+        to_addresses=payload["to"],
+        cc_addresses=payload.get("cc", []),
         subject=payload["subject"],
         text_content=payload.get("text_content"),
         html_content=payload.get("html_content"),
         attachments=payload.get("attachments", []),
     )
-    envelope_to = list(payload["to_addresses"]) + list(payload.get("cc_addresses", []))
+    envelope_to = list(payload["to"]) + list(payload.get("cc", []))
     try:
         _send_via_smtp(msg, envelope_to)
     except smtplib.SMTPResponseException as exc:
+        detail = f"SMTP {exc.smtp_code}: {_smtp_error_text(exc)}"
         if exc.smtp_code in PERMANENT_FAILURES:
-            _mark_status(task_id, status="failed", error=f"SMTP {exc.smtp_code}: {exc.smtp_error}")
+            _mark_status(task_id, status="failed", error=detail)
             return task_id  # permanent: no retry
-        return _retry_or_fail(self, task_id, error=f"SMTP {exc.smtp_code}: {exc.smtp_error}")
-    except (smtplib.SMTPException, socket.timeout, OSError) as exc:
+        return _retry_or_fail(self, task_id, error=detail)
+    except (TimeoutError, smtplib.SMTPException, OSError) as exc:
         return _retry_or_fail(self, task_id, error=str(exc))  # transient
 
     _mark_status(task_id, status="sent")
