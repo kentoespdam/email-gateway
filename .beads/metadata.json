@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "email_gateway",
+  "project_id": "01e32388-cf5b-45cb-9f64-71089c0cdbe2"
+}
