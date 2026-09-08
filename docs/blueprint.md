@@ -1,29 +1,73 @@
 ### 1. Struktur Folder (Project Layout)
 
-Tata letak ini memisahkan antara lapisan *routing* API, validasi data, dan *background worker*.
+Tata letak ini memisahkan antara lapisan *routing* API, validasi data, ORM, dan *background worker*. Dibandingkan blueprint awal, ditambahkan `models.py`, `database.py`, direktori `alembic/`, dan `tests/`.
 
 ```text
 email_gateway/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # Titik masuk FastAPI & Endpoint HTTP
+│   ├── main.py              # Titik masuk FastAPI & dua Endpoint HTTP
 │   ├── schemas.py           # Validasi payload menggunakan Pydantic V2
-│   ├── security.py          # Logika verifikasi X-API-Key
+│   ├── security.py          # Logika verifikasi X-API-Key & from_address whitelist
+│   ├── models.py            # SQLAlchemy models: ApiKey, MailTransaction
+│   ├── database.py          # Engine PostgreSQL + SessionLocal
 │   └── worker/
 │       ├── __init__.py
 │       ├── celery_app.py    # Konfigurasi Message Broker (Redis)
-│       └── tasks.py         # Logika Celery, SMTP Persistent Pooling, & Retry
-├── .env                     # Variabel konfigurasi kredensial SMTP & API Keys
-├── requirements.txt         # fastapi, celery, redis, pydantic, uvicorn
-└── docker-compose.yml       # Konfigurasi container untuk Redis Server
-
+│       └── tasks.py         # Celery task: connection-per-task SMTP & Retry
+├── alembic/                 # Migrasi schema database
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+├── tests/
+│   ├── __init__.py
+│   ├── test_api.py
+│   └── test_tasks.py
+├── .env                     # SMTP credentials, DB URL, Redis URL
+├── pyproject.toml           # Dependency management via uv
+└── docker-compose.yml       # Redis + PostgreSQL + Celery Worker
 ```
 
 ---
 
-### 2. Validasi Payload (app/schemas.py)
+### 2. Dependency Stack (pyproject.toml)
 
-Menggunakan standar Pydantic V2. Validasi ini akan memastikan format email sudah benar dan salah satu dari teks atau HTML selalu terisi sebelum pesan dikirim ke Redis.
+```toml
+[project]
+name = "email-gateway"
+version = "1.0.0"
+requires-python = ">=3.11"
+dependencies = [
+    # Core
+    "fastapi",
+    "uvicorn[standard]",
+    # Validation & Settings
+    "pydantic[email]",
+    "pydantic-settings",
+    # Database
+    "sqlalchemy",
+    "psycopg2-binary",
+    "alembic",
+    # Queue & Worker
+    "celery[redis]",
+    "redis",
+    # Logging
+    "structlog",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "httpx",
+    "pytest-mock",
+]
+```
+
+---
+
+### 3. Validasi Payload (app/schemas.py)
+
+`from_address` adalah field wajib. `bcc` tidak ada di V1.
 
 ```python
 from pydantic import BaseModel, EmailStr, Field, model_validator
@@ -37,6 +81,7 @@ class Attachment(BaseModel):
 class EmailPayload(BaseModel):
     to: List[EmailStr]
     cc: Optional[List[EmailStr]] = []
+    from_address: EmailStr                    # Wajib; divalidasi ke whitelist Client
     subject: str = Field(..., min_length=1)
     text_content: Optional[str] = None
     html_content: Optional[str] = None
@@ -44,160 +89,234 @@ class EmailPayload(BaseModel):
 
     @model_validator(mode='after')
     def check_content(self):
-        # Mencegah payload kosong (tanpa body content)
         if not self.text_content and not self.html_content:
             raise ValueError('Minimal salah satu (text_content atau html_content) harus diisi')
         return self
 
+    @model_validator(mode='after')
+    def check_payload_size(self):
+        # Estimasi cepat ukuran Base64 tanpa decode
+        total_b64_len = sum(len(a.base64_data) for a in (self.attachments or []))
+        estimated_raw = (total_b64_len * 3) // 4
+        max_bytes = 10 * 1024 * 1024  # ~10.5 MB raw ≈ 15 MB JSON payload
+        if estimated_raw > max_bytes:
+            raise ValueError('Total ukuran attachment melebihi batas maksimal')
+        return self
 ```
 
 ---
 
-### 3. REST API Endpoint (app/main.py)
+### 4. Database Models (app/models.py)
 
-Ini adalah "pintu gerbang" aplikasi. *Endpoint* ini didesain ringan; ia tidak melakukan proses *blocking* SMTP sama sekali, melainkan langsung mendelegasikan tugas ke Celery dengan mengembalikan status `202 Accepted`.
+```python
+from sqlalchemy import Column, String, Integer, DateTime, ARRAY, Text
+from sqlalchemy.orm import DeclarativeBase
+from datetime import datetime, timezone
+
+class Base(DeclarativeBase):
+    pass
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    id = Column(String, primary_key=True)          # UUID
+    key = Column(String, unique=True, nullable=False)
+    client_name = Column(String, nullable=False)
+    allowed_from_addresses = Column(ARRAY(String), nullable=False)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+class MailTransaction(Base):
+    __tablename__ = "mail_transactions"
+
+    id = Column(String, primary_key=True)          # UUID
+    task_id = Column(String, unique=True, nullable=False)
+    client_id = Column(String, nullable=False)
+    from_address = Column(String, nullable=False)
+    to_addresses = Column(ARRAY(String), nullable=False)
+    cc_addresses = Column(ARRAY(String), default=[])
+    subject = Column(String, nullable=False)
+    attachment_count = Column(Integer, default=0)
+    status = Column(String, default="queued")      # queued | sent | failed
+    error_message = Column(Text, nullable=True)
+    retry_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    delivered_at = Column(DateTime, nullable=True)
+```
+
+---
+
+### 5. REST API Endpoints (app/main.py)
+
+Dua endpoint: satu untuk mengirim, satu untuk query status.
 
 ```python
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
+from sqlalchemy.orm import Session
 from app.schemas import EmailPayload
+from app.database import get_db
+from app.models import ApiKey, MailTransaction
 from app.worker.tasks import send_email_task
-import os
+import structlog, uuid
 
-app = FastAPI(
-    title="Centralized Email Gateway API",
-    description="Layanan antrean pengiriman email untuk internal apps.",
-    version="1.0.0"
-)
-
-# Simulasi sederhana validasi API Key (idealnya ini divalidasi ke database)
+log = structlog.get_logger()
+app = FastAPI(title="Centralized Email Gateway API", version="1.0.0")
 header_scheme = APIKeyHeader(name="X-API-Key")
-VALID_API_KEYS = os.getenv("VALID_API_KEYS", "secret-key-1,secret-key-2").split(",")
 
-def verify_api_key(api_key: str = Depends(header_scheme)):
-    if api_key not in VALID_API_KEYS:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="API Key tidak valid atau telah dicabut"
-        )
-    return api_key
+def get_api_key(api_key: str = Depends(header_scheme), db: Session = Depends(get_db)) -> ApiKey:
+    record = db.query(ApiKey).filter_by(key=api_key, is_active=1).first()
+    if not record:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API Key tidak valid")
+    return record
 
 @app.post("/api/v1/emails/send", status_code=status.HTTP_202_ACCEPTED)
-async def push_email_to_queue(
+def push_email_to_queue(
     payload: EmailPayload,
-    api_key: str = Depends(verify_api_key)
+    api_key: ApiKey = Depends(get_api_key),
+    db: Session = Depends(get_db)
 ):
-    # Payload model di-dump menjadi dictionary mentah agar bisa di-serialize oleh Redis
-    task = send_email_task.delay(payload.model_dump())
-    
-    return {
-        "status": "accepted",
-        "message": "Pesan telah masuk ke dalam antrean pengiriman.",
-        "task_id": task.id
-    }
+    # Validasi from_address terhadap whitelist client
+    if payload.from_address not in api_key.allowed_from_addresses:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="from_address tidak diizinkan untuk API Key ini")
 
+    task_id = str(uuid.uuid4())
+    # Catat Mail Transaction awal
+    tx = MailTransaction(
+        id=str(uuid.uuid4()), task_id=task_id,
+        client_id=api_key.id, from_address=payload.from_address,
+        to_addresses=payload.to, cc_addresses=payload.cc or [],
+        subject=payload.subject,
+        attachment_count=len(payload.attachments or []),
+    )
+    db.add(tx); db.commit()
+
+    send_email_task.apply_async(args=[payload.model_dump()], task_id=task_id)
+    log.info("email_queued", task_id=task_id, client=api_key.client_name)
+    return {"status": "accepted", "task_id": task_id}
+
+@app.get("/api/v1/emails/{task_id}")
+def get_email_status(task_id: str, db: Session = Depends(get_db),
+                     api_key: ApiKey = Depends(get_api_key)):
+    tx = db.query(MailTransaction).filter_by(task_id=task_id, client_id=api_key.id).first()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
+    return {"task_id": tx.task_id, "status": tx.status, "retry_count": tx.retry_count,
+            "error_message": tx.error_message, "created_at": tx.created_at,
+            "delivered_at": tx.delivered_at}
 ```
 
 ---
 
-### 4. Worker & SMTP Persistent Connection (app/worker/tasks.py)
+### 6. Worker & SMTP Connection-per-Task (app/worker/tasks.py)
 
-Ini adalah bagian terpenting dari arsitektur *gateway*. Koneksi SMTP hanya dibuka **satu kali** saat *worker process* menyala (via `worker_process_init`). Semua *request* email yang masuk akan memakai ulang koneksi tersebut.
-
-Jika *handshake* ke SMTP *timeout*, *worker* akan melakukan *Exponential Backoff* (menunggu 1 menit, lalu 5 menit, dst.) sebelum mencoba lagi.
+Koneksi SMTP dibuka, digunakan, dan ditutup per task via context manager. Tidak ada global state.
+SMTP error `552` (ukuran melebihi batas) adalah *permanent failure* — tidak di-retry.
 
 ```python
-import smtplib
-import base64
-import os
+import smtplib, base64, os
 from email.message import EmailMessage
 from celery import Celery
-from celery.signals import worker_process_init, worker_process_shutdown
+from app.database import SessionLocal
+from app.models import MailTransaction
+from datetime import datetime, timezone
+import structlog
 
-# Inisialisasi koneksi ke broker Redis
+log = structlog.get_logger()
 celery_app = Celery("email_worker", broker=os.getenv("REDIS_URL", "redis://localhost:6379/0"))
-
-# Variabel global untuk menyimpan state koneksi SMTP di dalam memori worker
-smtp_connection = None
-
-def init_smtp():
-    """Fungsi bantuan untuk menyalakan ulang koneksi jika terputus."""
-    host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    port = int(os.getenv("SMTP_PORT", 587))
-    conn = smtplib.SMTP(host, port)
-    conn.starttls()
-    conn.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
-    return conn
-
-@worker_process_init.connect
-def on_worker_start(**kwargs):
-    global smtp_connection
-    try:
-        smtp_connection = init_smtp()
-        print("Worker berhasil membuka koneksi persisten ke server SMTP.")
-    except Exception as e:
-        print(f"Gagal melakukan koneksi awal ke SMTP: {e}")
-
-@worker_process_shutdown.connect
-def on_worker_stop(**kwargs):
-    global smtp_connection
-    if smtp_connection:
-        smtp_connection.quit()
+RETRY_COUNTDOWN = [60, 300, 900]  # detik: 1 menit, 5 menit, 15 menit
 
 @celery_app.task(bind=True, max_retries=3)
 def send_email_task(self, payload: dict):
-    global smtp_connection
-    
-    # 1. Merakit format email standar MIME
-    msg = EmailMessage()
-    msg['Subject'] = payload.get('subject')
-    msg['From'] = os.getenv("SMTP_FROM", "system@domain.com")
-    msg['To'] = ", ".join(payload.get('to', []))
-    
-    if payload.get('cc'):
-        msg['Cc'] = ", ".join(payload.get('cc'))
-        
-    text_content = payload.get('text_content')
-    html_content = payload.get('html_content')
-    
-    # Prioritaskan menyisipkan teks fallback, lalu HTML
-    if text_content:
-        msg.set_content(text_content)
-        if html_content:
-            msg.add_alternative(html_content, subtype='html')
-    elif html_content:
-        msg.set_content(html_content, subtype='html')
-        
-    # 2. Sisipkan attachments biner (contoh: struk tagihan PDF)
-    for attachment in payload.get('attachments', []):
-        file_data = base64.b64decode(attachment['base64_data'])
-        maintype, subtype = attachment['content_type'].split('/', 1)
-        msg.add_attachment(
-            file_data, 
-            maintype=maintype, 
-            subtype=subtype, 
-            filename=attachment['filename']
-        )
-        
-    # 3. Proses Pengiriman dengan penanganan putus koneksi
-    try:
-        # Cek apakah koneksi SMTP masih hidup, idle timeout dari server sering memutus koneksi
-        try:
-            status_code = smtp_connection.noop()[0]
-            if status_code != 250:
-                raise smtplib.SMTPServerDisconnected
-        except Exception:
-            # Re-connect secara halus tanpa membatalkan task
-            smtp_connection = init_smtp()
-            
-        smtp_connection.send_message(msg)
-        
-    except Exception as exc:
-        # Jika server SMTP benar-benar mati/gangguan, lakukan Exponential Backoff
-        # Retries: percobaan 1 (tunggu 1 menit), percobaan 2 (tunggu 5 menit)
-        countdown_timer = 60 * (5 ** self.request.retries) 
-        raise self.retry(exc=exc, countdown=countdown_timer)
+    task_id = self.request.id
 
+    # Rakit pesan MIME
+    msg = EmailMessage()
+    msg['Subject'] = payload['subject']
+    msg['From'] = payload['from_address']
+    msg['To'] = ", ".join(payload['to'])
+    if payload.get('cc'):
+        msg['Cc'] = ", ".join(payload['cc'])
+
+    if payload.get('text_content'):
+        msg.set_content(payload['text_content'])
+        if payload.get('html_content'):
+            msg.add_alternative(payload['html_content'], subtype='html')
+    elif payload.get('html_content'):
+        msg.set_content(payload['html_content'], subtype='html')
+
+    for att in payload.get('attachments', []):
+        file_data = base64.b64decode(att['base64_data'])
+        maintype, subtype = att['content_type'].split('/', 1)
+        msg.add_attachment(file_data, maintype=maintype, subtype=subtype, filename=att['filename'])
+
+    host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    port = int(os.getenv("SMTP_PORT", 587))
+
+    try:
+        with smtplib.SMTP(host, port, timeout=15) as conn:
+            conn.starttls()
+            conn.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
+            conn.send_message(msg)
+
+        _update_status(task_id, "sent", delivered_at=datetime.now(timezone.utc))
+        log.info("email_sent", task_id=task_id)
+
+    except smtplib.SMTPResponseException as exc:
+        if exc.smtp_code == 552:
+            # Permanent failure — jangan retry
+            log.error("email_permanent_fail", task_id=task_id, code=552, error=str(exc))
+            _update_status(task_id, "failed", error=str(exc))
+            return
+        _handle_retry(self, exc, task_id)
+    except Exception as exc:
+        _handle_retry(self, exc, task_id)
+
+def _handle_retry(task, exc, task_id):
+    retry_num = task.request.retries
+    countdown = RETRY_COUNTDOWN[retry_num] if retry_num < len(RETRY_COUNTDOWN) else 900
+    log.warning("email_retry", task_id=task_id, retry=retry_num + 1, countdown=countdown)
+    _update_status(task_id, "queued", retry_count=retry_num + 1, error=str(exc))
+    raise task.retry(exc=exc, countdown=countdown)
+
+def _update_status(task_id, status, delivered_at=None, error=None, retry_count=None):
+    with SessionLocal() as db:
+        tx = db.query(MailTransaction).filter_by(task_id=task_id).first()
+        if tx:
+            tx.status = status
+            if error: tx.error_message = error
+            if delivered_at: tx.delivered_at = delivered_at
+            if retry_count is not None: tx.retry_count = retry_count
+            db.commit()
 ```
 
-Dengan struktur ini, modul lain hanya perlu mengarahkan JSON *payload* mereka ke `/api/v1/emails/send` dan melampirkan `X-API-Key`. Konfigurasi basis kodenya cukup ringan namun sudah siap menangani beban antrean masif.
+---
+
+### 7. Docker Compose (docker-compose.yml)
+
+```yaml
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: email_gateway
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+
+  worker:
+    build: .
+    command: uv run celery -A app.worker.celery_app worker --loglevel=info --concurrency=4
+    env_file: .env
+    depends_on: [redis, postgres]
+
+volumes:
+  pgdata:
+```
+

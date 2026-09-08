@@ -1,0 +1,44 @@
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.class
+*.so
+
+# Git
+.git/
+
+# Agent/Tool caches
+.agents/
+.claude/
+
+# Lock files (often very large)
+uv.lock
+poetry.lock
+package-lock.json
+
+# Build / Distribution
+dist/
+build/
+*.egg-info/
+
+# Test / Analysis caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage*
+htmlcov/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# IDE / OS metadata
+.idea/
+.vscode/
+.DS_Store

@@ -62,6 +62,7 @@ dmypy.json
 # AI / Assistant tools
 .agents/
 .claude/
+.gitnexus/
 
 # IDE & Editor files
 .idea/
@@ -74,7 +75,7 @@ dmypy.json
 .DS_Store
 Thumbs.db
 
-# Beads / Dolt files (added by bd init)
+# Beads / Dolt files
 .dolt/
 *.db
 .beads-credential-key
