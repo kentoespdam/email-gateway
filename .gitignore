@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments & uv
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+# Note: uv.lock is recommended to be committed to version control for applications.
+# If this is a library or you do not want to track it, uncomment the line below:
+# uv.lock
+
+# Distribution / packaging
+build/
+dist/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+develop-eggs/
+downloads/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+.installed.cfg
+MANIFEST
+
+# Testing, coverage & linters
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.hypothesis/
+coverage.xml
+nosetests.xml
+*.cover
+*.py,cover
+
+# Linting & Type checking
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Environment variables & local secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# AI / Assistant tools
+.agents/
+.claude/
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating System
+.DS_Store
+Thumbs.db
