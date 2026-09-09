@@ -48,19 +48,19 @@ Urutan claim berdasarkan dependency antar issue.
 
 ## Group 4 — Admin API (claim setelah BE-7)
 
-- [ ] **BE-8** `feat: user management endpoints`
+- [x] **BE-8** `feat: user management endpoints`
   - `GET /admin/users` — list semua AdminUser
   - `POST /admin/users` — buat user baru (min password 8 char)
   - `DELETE /admin/users/{id}` — hapus user (tidak bisa hapus diri sendiri)
   - `PUT /admin/users/{id}/password` — reset password
 
-- [ ] **BE-9** `feat: API Key management endpoints`
+- [x] **BE-9** `feat: API Key management endpoints`
   - `GET /admin/api-keys` — list semua ApiKey (id, client_name, is_active, created_at, expires_at)
   - `POST /admin/api-keys` — buat key baru (generate `key_token` random, return sekali saja)
   - `PATCH /admin/api-keys/{id}` — update `is_active`, `client_name`, `allowed_from_addresses`, `expires_at`
   - `DELETE /admin/api-keys/{id}` — hapus key
 
-- [ ] **BE-10** `feat: mail transaction list endpoint`
+- [x] **BE-10** `feat: mail transaction list endpoint`
   - `GET /admin/transactions` — list Mail Transaction dengan filter:
     - `status` (queued/sent/failed)
     - `from_date`, `to_date` (created_at range)
