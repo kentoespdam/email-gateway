@@ -38,7 +38,7 @@ Urutan claim berdasarkan dependency antar issue.
 
 ## Group 3 — Auth API (claim setelah BE-1, BE-2, BE-5)
 
-- [ ] **BE-7** `feat: admin auth endpoints`
+- [x] **BE-7** `feat: admin auth endpoints`
   - `POST /admin/auth/login` — terima `{username, password}`, return cookie `session_token` (HttpOnly, SameSite=Lax)
   - `POST /admin/auth/logout` — hapus baris `admin_sessions`, clear cookie
   - `GET /admin/auth/me` — return info AdminUser dari session aktif
