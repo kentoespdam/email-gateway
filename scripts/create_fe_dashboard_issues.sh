@@ -18,7 +18,7 @@ Skema:
 - created_at: DateTime timezone
 
 Gunakan passlib[bcrypt] untuk password hashing. Tambahkan uv add passlib[bcrypt]. Ini adalah fondasi untuk sistem auth Dashboard admin." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-1: $BE1"
 
 BE2=$(bd create "Add AdminSession model and Alembic migration" \
@@ -33,7 +33,7 @@ Skema:
 - expires_at: DateTime timezone
 
 Sliding window 24 jam: expires_at = last_seen_at + timedelta(hours=24). Session invalid jika expires_at < now()." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-2: $BE2"
 
 BE3=$(bd create "Add nullable expires_at field to ApiKey + Alembic migration" \
@@ -44,7 +44,7 @@ Skema tambahan:
 - expires_at: DateTime(timezone=True), nullable=True, default=None
 
 Semantics: NULL = tidak pernah expired. Non-null = expired setelah tanggal tersebut. Dipakai untuk key rotation otomatis dari Dashboard." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-3: $BE3"
 
 # ============================================================
@@ -62,7 +62,7 @@ Konfigurasi:
 - allow_headers: [\"*\"]
 
 CATATAN KRITIS: wildcard allow_origins='*' TIDAK kompatibel dengan allow_credentials=True di browser. Selalu gunakan explicit origin list." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-4: $BE4"
 
 BE5=$(bd create "Admin bootstrap on startup via env var" \
@@ -75,7 +75,7 @@ Logika:
 3. Implementasi di FastAPI lifespan context manager (bukan @app.on_event deprecated)
 
 Tambah ADMIN_USERNAME dan ADMIN_PASSWORD ke .env.example dan config.py." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-5: $BE5"
 
 BE6=$(bd create "Validate ApiKey expires_at in security.py" \
@@ -86,7 +86,7 @@ Logika tambahan di WHERE clause:
   AND (expires_at IS NULL OR expires_at > now())
 
 Key expired harus ditolak dengan HTTP 401 (pesan: 'API key has expired') sama seperti inactive key. Tambah test case untuk key expired." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-6: $BE6"
 
 # ============================================================
@@ -116,7 +116,7 @@ Endpoint:
    - Gagal: HTTP 401
 
 Buat dependency require_admin_session() untuk dipakai di semua admin endpoint." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-7: $BE7"
 
 # ============================================================
@@ -132,7 +132,7 @@ Endpoint:
 - POST /admin/users: buat user baru. Body: {username, password}. Validasi: password min 8 char, username unique. Hash password dengan bcrypt.
 - DELETE /admin/users/{id}: hapus user. TOLAK dengan HTTP 400 jika id == current session user (tidak bisa hapus diri sendiri).
 - PUT /admin/users/{id}/password: reset password. Body: {new_password}. Validasi min 8 char. Hash ulang." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-8: $BE8"
 
 BE9=$(bd create "API Key management endpoints for Dashboard" \
@@ -144,7 +144,7 @@ Endpoint:
 - POST /admin/api-keys: buat key baru. Body: {client_name, allowed_from_addresses, expires_at?}. Generate key_token menggunakan secrets.token_urlsafe(32). Return key_token HANYA SEKALI di response create — tidak bisa diambil lagi.
 - PATCH /admin/api-keys/{id}: update fields: is_active, client_name, allowed_from_addresses, expires_at.
 - DELETE /admin/api-keys/{id}: hapus key." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-9: $BE9"
 
 BE10=$(bd create "Mail transaction list endpoint with filters and pagination" \
@@ -167,7 +167,7 @@ Response:
 - page_size: int
 
 Query: SQLAlchemy dengan COUNT subquery atau func.count() window." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "BE-10: $BE10"
 
 # ============================================================
@@ -190,7 +190,7 @@ Langkah:
 6. Buat frontend/.env.example: VITE_API_URL=http://localhost:8000
 7. Buat frontend/.dockerignore
 8. Update root .gitignore untuk frontend/node_modules" \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "FE-1: $FE1"
 
 # ============================================================
@@ -215,7 +215,7 @@ ProtectedRoute:
 useAuth hook: expose user, isLoading, logout() function.
 
 Simpan current user di React Context agar accessible di semua page (untuk disable delete diri sendiri)." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "FE-2: $FE2"
 
 FE3=$(bd create "API Key management page" \
@@ -231,7 +231,7 @@ Aksi:
 - Delete: Ant Design Popconfirm, DELETE /admin/api-keys/{id}
 
 Data: React Query useQuery + useMutation. Invalidate cache setelah mutasi." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "FE-3: $FE3"
 
 FE4=$(bd create "User management page" \
@@ -246,7 +246,7 @@ Aksi:
 - Delete: Ant Design Popconfirm. DELETE /admin/users/{id}. Tombol DELETE di-disabled jika id == current user (dari useAuth context).
 
 Data: React Query useQuery + useMutation." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "FE-4: $FE4"
 
 FE5=$(bd create "Log monitoring page with 30s auto-polling" \
@@ -263,7 +263,7 @@ Filter bar (di atas table):
 
 Pagination: Ant Design Table pagination, sync ke query params page + page_size.
 Auto-refresh: React Query refetchInterval: 30000 (30 detik). Tampilkan indikator 'Last updated: Xs ago'." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "FE-5: $FE5"
 
 # ============================================================
@@ -292,7 +292,7 @@ INFRA1=$(bd create "Update docker-compose.yml to add frontend service" \
    VITE_API_URL=http://localhost:8000
 
 4. Update README.md: tambah section Quick Start untuk Dashboard." \
-  | grep -oP 'beads-\w+')
+  | grep -oE 'email-gateway-[a-z0-9]+')
 echo "INFRA-1: $INFRA1"
 
 # ============================================================
