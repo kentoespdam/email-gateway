@@ -57,20 +57,82 @@ To ensure model efficiency and context stability:
 
 ---
 
-## 4. Agent Operational Rules
+## 4. Frontend Standards (Bun + Vite + React + TypeScript)
+
+> Applies to everything under `frontend/`.
+
+### 4.1 Package Manager — Bun (MANDATORY)
+
+*   **NEVER** use `npm`, `yarn`, or `pnpm` inside `frontend/`. Use **`bun`** exclusively.
+*   Common commands:
+
+    | Task | Command |
+    |---|---|
+    | Install dependencies | `bun install` |
+    | Add a package | `bun add <package>` |
+    | Add a dev dependency | `bun add -d <package>` |
+    | Remove a package | `bun remove <package>` |
+    | Run a script | `bun run <script>` |
+    | Dev server | `bun run dev` |
+    | Build | `bun run build` |
+    | Preview build | `bun run preview` |
+    | Lint | `bun run lint` |
+
+*   **Lock file**: Always commit `bun.lock`. Never delete or manually edit it.
+*   **`node_modules`**: Never commit. Ensure it is listed in `.gitignore`.
+
+### 4.2 TypeScript Standards
+
+*   **Strict mode** (`"strict": true`) is mandatory — no relaxation without explicit ADR.
+*   No `any` types. Use `unknown` + type guards, or define proper interfaces/types.
+*   Prefer `type` over `interface` for plain data shapes; use `interface` for extension/OOP patterns.
+*   All React components must be typed with explicit prop interfaces/types.
+
+### 4.3 React Standards
+
+*   **React 19+**: Use functional components and hooks exclusively — no class components.
+*   State: Use `useState` / `useReducer` for local state; `@tanstack/react-query` for server state.
+*   Avoid prop-drilling deeper than 2 levels — lift state or use context/query.
+*   File naming: `PascalCase` for components (e.g., `EmailList.tsx`), `camelCase` for hooks (e.g., `useEmailList.ts`).
+*   One component per file. Co-locate styles and tests with the component.
+
+### 4.4 Linting — oxlint (MANDATORY)
+
+*   Linter: **`oxlint`** — do NOT install or use `eslint`.
+*   Always run `bun run lint` before committing frontend changes.
+*   Fix all lint errors; do NOT suppress warnings without a justified comment.
+*   Lint config lives in `.oxlintrc.json` — modifications require team review.
+
+### 4.5 File Size & Modularity (Frontend)
+
+*   Same hard limits as backend: **150–250 LOC ideal**, **300 LOC max**.
+*   Split large components into smaller sub-components.
+*   Utility functions go in `src/utils/`, API call wrappers in `src/api/`.
+
+### 4.6 Agent Rules for Frontend
+
+*   When running any frontend command from within the agent terminal, prefix with `cd frontend &&` or run from inside the `frontend/` directory.
+*   Use quiet/CI-friendly flags where available (e.g., `bun run build 2>&1 | tail -20`).
+*   Do NOT run `bun install` unnecessarily — only when `package.json` changed.
+
+---
+
+## 5. Agent Operational Rules
 ...
 *   **Terminal**: 
     *   Use quiet flags (`-q`, `head`, `grep`).
     *   Non-interactive shell commands required (e.g., `cp -f`, `rm -rf`).
     *   Always use `uv run <command>` for python-related tools.
+    *   Always use `bun run <script>` for frontend-related tools (inside `frontend/`).
 
 ---
 
-## 5. Session Completion & Quality Gates
+## 6. Session Completion & Quality Gates
 ...
 Work is **NOT** complete until pushed. Mandatory push sequence:
 
-1.  Run quality gates (`uv run pytest`, linters).
-2.  `git pull --rebase`
-3.  `git push`
-4.  `git status` (must show "up to date with origin")
+1.  Run backend quality gates: `uv run pytest`, linters.
+2.  Run frontend quality gates: `bun run lint && bun run build` (inside `frontend/`).
+3.  `git pull --rebase`
+4.  `git push`
+5.  `git status` (must show "up to date with origin")
