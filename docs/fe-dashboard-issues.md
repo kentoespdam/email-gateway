@@ -7,15 +7,15 @@ Urutan claim berdasarkan dependency antar issue.
 
 ## Group 1 — DB Schema (claim pertama, tidak ada dependency)
 
-- [ ] **BE-1** `feat: add AdminUser model + alembic migration`
+- [x] **BE-1** `feat: add AdminUser model + alembic migration`
   - Tabel `admin_users`: `id (UUID PK)`, `username (unique)`, `hashed_password`, `created_at`
   - Library: `passlib[bcrypt]`
 
-- [ ] **BE-2** `feat: add AdminSession model + alembic migration`
+- [x] **BE-2** `feat: add AdminSession model + alembic migration`
   - Tabel `admin_sessions`: `id (UUID PK)`, `user_id (FK admin_users)`, `token (UUID unique)`, `last_seen_at`, `expires_at`
   - Sliding window 24 jam: `expires_at = last_seen_at + 24h`
 
-- [ ] **BE-3** `feat: add expires_at to ApiKey + alembic migration`
+- [x] **BE-3** `feat: add expires_at to ApiKey + alembic migration`
   - Kolom nullable: `expires_at (DateTime, timezone=True, nullable)`
 
 ---
