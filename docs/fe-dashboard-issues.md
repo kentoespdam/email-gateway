@@ -22,16 +22,16 @@ Urutan claim berdasarkan dependency antar issue.
 
 ## Group 2 — Backend Config (claim setelah Group 1 selesai)
 
-- [ ] **BE-4** `feat: add CORSMiddleware + ALLOWED_ORIGINS env var`
+- [x] **BE-4** `feat: add CORSMiddleware + ALLOWED_ORIGINS env var`
   - `allow_origins` dari env var `ALLOWED_ORIGINS` (comma-separated)
   - `allow_credentials=True`, `allow_methods=["*"]`, `allow_headers=["*"]`
 
-- [ ] **BE-5** `feat: admin bootstrap on startup via env var`
+- [x] **BE-5** `feat: admin bootstrap on startup via env var`
   - Baca `ADMIN_USERNAME` + `ADMIN_PASSWORD` dari env
   - Jika tabel `admin_users` kosong, buat user pertama otomatis saat startup
   - Skip jika sudah ada user
 
-- [ ] **BE-6** `fix: validate ApiKey expires_at in security.py`
+- [x] **BE-6** `fix: validate ApiKey expires_at in security.py`
   - Tambah cek `expires_at is None or expires_at > now()` di `_lookup_api_key`
 
 ---
