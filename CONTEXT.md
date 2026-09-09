@@ -32,6 +32,7 @@ _Avoid_: file, lampiran (dalam kode)
 Unit kerja Celery yang dibuat untuk setiap Email Request yang diterima. Satu Task mengeksekusi satu pengiriman SMTP.
 _Avoid_: job, worker task, background job
 
+
 ### Audit & Monitoring
 
 **Mail Transaction**:
@@ -42,3 +43,18 @@ _Avoid_: log entry, email log, audit record
 Status akhir dari satu Mail Transaction: `queued`, `sent`, atau `failed`.
 - `failed` bisa berasal dari: (a) transient error setelah 3x retry habis, atau (b) permanent SMTP error (kode `552 5.3.4`) yang langsung tidak di-retry.
 _Avoid_: state, result, status email
+
+### Administrasi & Dashboard
+
+**Dashboard**:
+Antarmuka web internal (React SPA) untuk mengelola API Key, memantau Mail Transaction, dan mengelola AdminUser. Hanya bisa diakses oleh AdminUser.
+_Avoid_: admin panel, backoffice, UI
+
+**AdminUser**:
+Anggota tim internal yang mengelola gateway via Dashboard. Dibuat oleh AdminUser lain, atau di-bootstrap dari env var saat startup. Memiliki akses penuh ke semua fitur Dashboard.
+_Avoid_: user, operator, staff
+
+**AdminSession**:
+Kredensial sementara berupa UUID token yang disimpan di tabel `admin_sessions`, diterbitkan kepada AdminUser setelah login berhasil. Berlaku 24 jam sejak request terakhir (sliding window). Dikirim ke browser sebagai HttpOnly cookie.
+_Avoid_: token, JWT, session token
+
