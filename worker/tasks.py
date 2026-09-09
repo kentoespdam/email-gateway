@@ -1,24 +1,20 @@
 """SMTP delivery task: connection-per-task, isolation of failures, ordered retries."""
 
 import base64
-import os
 import smtplib
 from datetime import UTC, datetime
 from email.message import EmailMessage
 from email.utils import make_msgid
 
+import structlog
 from sqlalchemy import select
 
+from app.config import settings
 from app.database import SessionLocal
 from app.models import MailTransaction
 from worker.celery_app import celery_app
 
-SMTP_HOST = os.environ.get("SMTP_HOST", "localhost")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
-SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
-SMTP_TIMEOUT_SECONDS = int(os.environ.get("SMTP_TIMEOUT_SECONDS", "15"))
+logger = structlog.get_logger(__name__)
 
 # Ordered retry delays in seconds; more than 3 retries -> permanent failure.
 RETRY_DELAYS = [60, 300, 900]
@@ -57,13 +53,19 @@ def _build_message(
 
 def _send_via_smtp(msg: EmailMessage, envelope_to: list[str]) -> None:
     # Connection-per-task: fresh SMTP connection, closed on exit.
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT_SECONDS) as smtp:
-        smtp.ehlo()
-        if SMTP_USE_TLS:
-            smtp.starttls()
+    if settings.smtp_use_ssl:
+        smtp_cls = smtplib.SMTP_SSL
+    else:
+        smtp_cls = smtplib.SMTP
+
+    with smtp_cls(settings.smtp_host, settings.smtp_port, timeout=settings.smtp_timeout_seconds) as smtp:
+        if not settings.smtp_use_ssl:
             smtp.ehlo()
-        if SMTP_USERNAME:
-            smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+            if settings.smtp_use_tls:
+                smtp.starttls()
+                smtp.ehlo()
+        if settings.smtp_username:
+            smtp.login(settings.smtp_username, settings.smtp_password)
         smtp.send_message(msg, from_addr=msg["From"], to_addrs=envelope_to)
 
 
@@ -120,16 +122,24 @@ def send_email(self, task_id: str, payload: dict) -> str:
         attachments=payload.get("attachments", []),
     )
     envelope_to = list(payload["to"]) + list(payload.get("cc", []))
+    
+    logger.info("attempting_email_delivery", task_id=task_id, envelope_to=envelope_to)
+    
     try:
         _send_via_smtp(msg, envelope_to)
     except smtplib.SMTPResponseException as exc:
         detail = f"SMTP {exc.smtp_code}: {_smtp_error_text(exc)}"
+        logger.error("smtp_error", task_id=task_id, error=detail)
         if exc.smtp_code in PERMANENT_FAILURES:
             _mark_status(task_id, status="failed", error=detail)
-            return task_id  # permanent: no retry
+            return task_id
         return _retry_or_fail(self, task_id, error=detail)
     except (TimeoutError, smtplib.SMTPException, OSError) as exc:
-        return _retry_or_fail(self, task_id, error=str(exc))  # transient
+        logger.exception("transient_smtp_error", task_id=task_id, error=str(exc))
+        return _retry_or_fail(self, task_id, error=str(exc))
 
+    logger.info("email_delivered_successfully", task_id=task_id)
     _mark_status(task_id, status="sent")
     return task_id
+
+

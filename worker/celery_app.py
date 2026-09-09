@@ -1,15 +1,12 @@
 """Celery application configured with Redis broker and backend."""
 
-import os
-
 from celery import Celery
-
-REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+from app.config import settings
 
 celery_app = Celery(
     "email_gateway",
-    broker=REDIS_URL,
-    backend=REDIS_URL,
+    broker=settings.redis_url,
+    backend=settings.redis_url,
     include=["worker.tasks"],
 )
 

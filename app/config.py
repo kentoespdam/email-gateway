@@ -15,7 +15,15 @@ class Settings(BaseSettings):
     smtp_username: str = ""
     smtp_password: str = ""
     smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
     smtp_timeout_seconds: int = 15
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.smtp_port == 465:
+            self.smtp_use_ssl = True
+            self.smtp_use_tls = False
+
 
 
 settings = Settings()
