@@ -55,3 +55,49 @@ class StatusResponse(BaseModel):
     error_message: str | None
     created_at: str | None = None
     delivered_at: str | None = None
+
+
+# --- Admin Dashboard contracts ---
+
+
+class AdminUserResponse(BaseModel):
+    id: str
+    username: str
+    created_at: str | None = None
+
+
+class ApiKeyResponse(BaseModel):
+    id: str
+    client_name: str
+    allowed_from_addresses: list[str]
+    is_active: bool
+    expires_at: str | None = None
+    created_at: str | None = None
+
+
+class ApiKeyCreatedResponse(ApiKeyResponse):
+    """Create response: includes key_token, shown to the admin exactly once."""
+
+    key_token: str
+
+
+class TransactionResponse(BaseModel):
+    id: str
+    task_id: str
+    from_address: str
+    to_addresses: list[str]
+    cc_addresses: list[str]
+    subject: str
+    attachment_count: int
+    status: str
+    error_message: str | None = None
+    retry_count: int
+    created_at: str | None = None
+    delivered_at: str | None = None
+
+
+class TransactionPageResponse(BaseModel):
+    items: list[TransactionResponse]
+    total_count: int
+    page: int
+    page_size: int

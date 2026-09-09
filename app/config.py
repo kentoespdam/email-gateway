@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     smtp_use_ssl: bool = False
     smtp_timeout_seconds: int = 15
 
+    # Admin Dashboard
+    allowed_origins: str = "http://localhost:5173"
+    admin_username: str = ""
+    admin_password: str = ""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if self.smtp_port == 465:

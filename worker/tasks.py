@@ -53,12 +53,11 @@ def _build_message(
 
 def _send_via_smtp(msg: EmailMessage, envelope_to: list[str]) -> None:
     # Connection-per-task: fresh SMTP connection, closed on exit.
-    if settings.smtp_use_ssl:
-        smtp_cls = smtplib.SMTP_SSL
-    else:
-        smtp_cls = smtplib.SMTP
+    smtp_cls: type[smtplib.SMTP] = smtplib.SMTP_SSL if settings.smtp_use_ssl else smtplib.SMTP
 
-    with smtp_cls(settings.smtp_host, settings.smtp_port, timeout=settings.smtp_timeout_seconds) as smtp:
+    with smtp_cls(
+        settings.smtp_host, settings.smtp_port, timeout=settings.smtp_timeout_seconds
+    ) as smtp:
         if not settings.smtp_use_ssl:
             smtp.ehlo()
             if settings.smtp_use_tls:

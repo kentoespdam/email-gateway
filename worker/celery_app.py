@@ -1,6 +1,7 @@
 """Celery application configured with Redis broker and backend."""
 
 from celery import Celery
+
 from app.config import settings
 
 celery_app = Celery(

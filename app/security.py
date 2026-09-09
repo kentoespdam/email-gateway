@@ -1,6 +1,7 @@
 """X-API-Key authentication and sender-whitelist authorization."""
 
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from fastapi import Header, HTTPException, status
 from sqlalchemy import select
@@ -20,7 +21,11 @@ class Client:
 
 def _lookup_api_key(session: Session, key_token: str) -> ApiKey | None:
     return session.execute(
-        select(ApiKey).where(ApiKey.key_token == key_token, ApiKey.is_active.is_(True))
+        select(ApiKey).where(
+            ApiKey.key_token == key_token,
+            ApiKey.is_active.is_(True),
+            (ApiKey.expires_at.is_(None)) | (ApiKey.expires_at > datetime.now(UTC)),
+        )
     ).scalar_one_or_none()
 
 
