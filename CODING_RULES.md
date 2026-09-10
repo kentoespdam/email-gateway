@@ -125,6 +125,17 @@ To ensure model efficiency and context stability:
     *   Always use `uv run <command>` for python-related tools.
     *   Always use `bun run <script>` for frontend-related tools (inside `frontend/`).
 
+*   **Error Recovery Protocol**:
+    1.  Attempt to fix the error independently (max **3 tries**).
+    2.  If still failing after 3 attempts, **STOP guessing** — do NOT keep retrying blindly.
+    3.  **Immediately research the internet** using `search_web` or `read_url_content` to find:
+        *   Official documentation for the library/tool involved.
+        *   Latest release notes or changelog (check for breaking changes).
+        *   Best practices, known issues, and community solutions (GitHub issues, Stack Overflow, official blogs).
+    4.  Apply the solution found from research, then resume.
+    5.  **Report to user** what was found and what fix was applied.
+    *   **Rationale**: Blind retrying wastes tokens and time. Fresh external sources prevent hallucinated fixes and ensure solutions match the actual library version in use.
+
 ---
 
 ## 6. Session Completion & Quality Gates

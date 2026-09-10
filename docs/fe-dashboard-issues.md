@@ -84,21 +84,21 @@ Urutan claim berdasarkan dependency antar issue.
 
 ## Group 6 — FE Pages (claim setelah BE-7..BE-10 dan FE-1)
 
-- [ ] **FE-2** `feat: login page + auth flow`
+- [x] **FE-2** `feat: login page + auth flow`
   - Form login (username + password) via Ant Design `Form`
   - Call `POST /admin/auth/login`, store session via cookie (browser otomatis)
   - Protected route: redirect ke `/login` jika tidak ada session (`GET /admin/auth/me` gagal)
 
-- [ ] **FE-3** `feat: API Key management page`
+- [x] **FE-3** `feat: API Key management page`
   - Table: id (masked), client_name, allowed_from_addresses, is_active, expires_at, created_at
   - Aksi: Create (modal form), Enable/Disable toggle, Delete (confirm dialog), Edit
   - Tampilkan `key_token` sekali saja saat create (copy-to-clipboard)
 
-- [ ] **FE-4** `feat: user management page`
+- [x] **FE-4** `feat: user management page`
   - Table: username, created_at
   - Aksi: Create user (modal), Reset password, Delete (tidak bisa hapus diri sendiri)
 
-- [ ] **FE-5** `feat: log monitoring page`
+- [x] **FE-5** `feat: log monitoring page`
   - Table: task_id, from_address, to_addresses, subject, status badge, retry_count, created_at, delivered_at
   - Filter bar: status dropdown, date range picker, API Key select, subject search input
   - Auto-refresh: React Query `refetchInterval: 30000`

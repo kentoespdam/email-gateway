@@ -199,7 +199,7 @@ export default function ApiKeysPage() {
         <Typography.Paragraph type="warning">
           Copy this token now — it will not be shown again.
         </Typography.Paragraph>
-        <Typography.Paragraph copyable code>
+        <Typography.Paragraph copyable code data-testid="api-key-token">
           {created?.key_token}
         </Typography.Paragraph>
       </Modal>
