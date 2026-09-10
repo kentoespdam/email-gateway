@@ -1,3 +1,4 @@
+import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfigProvider, theme } from 'antd'
 import { StrictMode } from 'react'
