@@ -337,6 +337,7 @@ services:
     build: .
     command: celery -A worker.celery_app worker --loglevel=info
     environment:
+      DATABASE_URL: postgresql+psycopg2://gateway:gateway@postgres:5432/email_gateway
       REDIS_URL: redis://redis:6379/0
     depends_on:
       postgres:

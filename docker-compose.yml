@@ -50,6 +50,7 @@ services:
       - path: .env
         required: false
     environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://gateway:gateway@postgres:5432/email_gateway}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       postgres:
