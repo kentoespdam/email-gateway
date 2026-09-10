@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
 
 export interface AdminUser {
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     api
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     api.post('/admin/auth/logout').catch(() => {})
+    queryClient.clear()
     setUser(null)
     navigate('/login', { replace: true })
   }

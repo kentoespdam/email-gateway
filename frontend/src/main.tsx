@@ -1,6 +1,6 @@
 import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ConfigProvider, theme } from 'antd'
+import { ConfigProvider, theme, App as AntdApp } from 'antd'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -18,7 +18,9 @@ const ThemedConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         token: { borderRadius: 8, colorPrimary: '#1677ff' },
       }}
     >
-      {children}
+      <AntdApp>
+        {children}
+      </AntdApp>
     </ConfigProvider>
   );
 };

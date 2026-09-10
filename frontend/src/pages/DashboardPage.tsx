@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Row, Col, Space, Button } from 'antd'
+import { Row, Col, Space, Button, Flex } from 'antd'
+import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import type { TransactionPage } from '../api/types'
 import { MetricCard } from '../components/dashboard/MetricCard'
@@ -8,7 +9,8 @@ import { RecentActivity } from '../components/dashboard/RecentActivity'
 import { MailOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 
 export default function DashboardPage() {
-  const { data } = useQuery({
+  const navigate = useNavigate()
+  const { data, refetch, isFetching } = useQuery({
     queryKey: ['transactions'],
     queryFn: async () => (await api.get<TransactionPage>('/admin/transactions', { params: { page: 1, page_size: 50 } })).data,
   })
@@ -20,7 +22,7 @@ export default function DashboardPage() {
   const failed = transactions.filter((t) => t.status === 'failed').length
 
   return (
-    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+    <Flex vertical gap="large" style={{ width: '100%' }}>
       <Row gutter={16}>
         <Col span={6}><MetricCard title="Total" value={total} prefixIcon={<MailOutlined />} color="#1890ff" /></Col>
         <Col span={6}><MetricCard title="Delivered" value={delivered} prefixIcon={<CheckCircleOutlined />} color="#52c41a" /></Col>
@@ -34,10 +36,16 @@ export default function DashboardPage() {
       </Row>
 
       <Space>
-        <Button type="primary">Send Test Email</Button>
-        <Button>View All Logs</Button>
-        <Button>Refresh</Button>
+        <Button type="primary" onClick={() => navigate('/test-email')}>
+          Send Test Email
+        </Button>
+        <Button onClick={() => navigate('/logs')}>
+          View All Logs
+        </Button>
+        <Button onClick={() => void refetch()} loading={isFetching}>
+          Refresh
+        </Button>
       </Space>
-    </Space>
+    </Flex>
   )
 }

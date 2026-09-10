@@ -59,7 +59,6 @@ describe('ApiKeysPage', () => {
     // and the "I have saved the key" CTA as the only footer action.
     expect(await screen.findByText(/copy this token now/i)).toBeInTheDocument()
     expect(screen.getByText(/i have saved the key/i)).toBeInTheDocument()
-    screen.debug()
     const tokenElement = await screen.findByText('super-secret-token')
     expect(tokenElement).toBeInTheDocument()
     // It is a Typography.Paragraph with copyable code, which might be nested. 

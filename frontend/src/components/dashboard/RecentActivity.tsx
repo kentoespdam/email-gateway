@@ -24,7 +24,7 @@ export const RecentActivity: React.FC<ActivityProps> = ({ transactions }) => {
                   />
                 </div>
               }
-              description={item.to_addresses.join(', ')}
+              description={(item.to_addresses || []).join(', ')}
             />
           </List.Item>
         )}

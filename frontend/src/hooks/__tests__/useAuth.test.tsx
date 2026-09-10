@@ -1,8 +1,15 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from '../useAuth'
 import { mockApi, setupMockApi } from '../../test-utils'
 import { vi } from 'vitest'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+  },
+})
 
 function Probe() {
   const { user, isLoading } = useAuth()
@@ -15,12 +22,17 @@ function Probe() {
 }
 
 function withRouter(ui: React.ReactNode) {
-  return <MemoryRouter>{ui}</MemoryRouter>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>
+  )
 }
 
 describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    queryClient.clear()
   })
 
   it('fetches /admin/auth/me on mount and exposes user', async () => {

@@ -31,8 +31,14 @@ export function MaskedTokenCell({ token }: MaskedTokenCellProps) {
         size="small"
         icon={<CopyOutlined />}
         onClick={() => {
-          navigator.clipboard.writeText(token)
-          message.success('Token copied to clipboard')
+          navigator.clipboard
+            .writeText(token)
+            .then(() => {
+              void message.success('Token copied to clipboard')
+            })
+            .catch(() => {
+              void message.error('Failed to copy to clipboard')
+            })
         }}
       />
     </Space>

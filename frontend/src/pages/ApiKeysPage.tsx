@@ -14,6 +14,7 @@ import {
   message,
 } from 'antd'
 import { useState } from 'react'
+import type { Dayjs } from 'dayjs'
 import api from '../api/client'
 import type { ApiKey, ApiKeyCreated } from '../api/types'
 import { MaskedTokenCell } from '../components/MaskedTokenCell'
@@ -21,7 +22,7 @@ import { MaskedTokenCell } from '../components/MaskedTokenCell'
 interface ApiKeyForm {
   client_name: string
   allowed_from_addresses: string
-  expires_at: { asDate(): Date | null } | null
+  expires_at: Dayjs | null
 }
 
 export default function ApiKeysPage() {
@@ -36,30 +37,39 @@ export default function ApiKeysPage() {
     queryFn: async () => (await api.get<ApiKey[]>('/admin/api-keys')).data,
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['api-keys'] })
-
   const createKey = useMutation({
     mutationFn: async (payload: Record<string, unknown>) =>
       (await api.post<ApiKeyCreated>('/admin/api-keys', payload)).data,
-    onSuccess: (key) => {
-      invalidate()
+    onSuccess: async (key) => {
       setModalOpen(false)
       setCreated(key)
+      await queryClient.invalidateQueries({ queryKey: ['api-keys'] })
     },
-    onError: () => message.error('Failed to create API key'),
+    onError: () => {
+      void message.error('Failed to create API key')
+    },
   })
 
   const updateKey = useMutation({
     mutationFn: ({ id, ...payload }: { id: string } & Record<string, unknown>) =>
       api.patch(`/admin/api-keys/${id}`, payload),
-    onSuccess: invalidate,
-    onError: () => message.error('Failed to update API key'),
+    onSuccess: async () => {
+      setModalOpen(false)
+      await queryClient.invalidateQueries({ queryKey: ['api-keys'] })
+    },
+    onError: () => {
+      void message.error('Failed to update API key')
+    },
   })
 
   const deleteKey = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/api-keys/${id}`),
-    onSuccess: invalidate,
-    onError: () => message.error('Failed to delete API key'),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['api-keys'] })
+    },
+    onError: () => {
+      void message.error('Failed to delete API key')
+    },
   })
 
   const openCreate = () => {
@@ -85,14 +95,13 @@ export default function ApiKeysPage() {
         .map((a) => a.trim())
         .filter(Boolean),
     }
-    const expires = values.expires_at?.asDate()
+    const expires = values.expires_at?.toDate()
     if (expires) payload.expires_at = expires.toISOString()
     if (editing) {
       updateKey.mutate({ id: editing.id, ...payload })
     } else {
       createKey.mutate(payload)
     }
-    setModalOpen(false)
   }
 
   const columns = [
@@ -112,7 +121,7 @@ export default function ApiKeysPage() {
       title: 'Allowed From',
       dataIndex: 'allowed_from_addresses',
       render: (addresses: string[]) =>
-        addresses.map((a) => <Tag key={a}>{a}</Tag>),
+        (addresses || []).map((a) => <Tag key={a}>{a}</Tag>),
     },
     {
       title: 'Active',

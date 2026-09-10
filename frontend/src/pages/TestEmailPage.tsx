@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Form, Input, Select, Radio, message, Card, Descriptions, Badge, Space } from 'antd'
+import { Button, Form, Input, Select, Radio, message, Card, Descriptions, Badge, Flex } from 'antd'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import ReactQuill from 'react-quill-new'
 import 'quill/dist/quill.snow.css'
@@ -40,19 +40,19 @@ export default function TestEmailPage() {
   })
 
   const sendEmail = useMutation({
-    mutationFn: async (payload: any) => await api.post('/admin/emails/test-send', payload),
+    mutationFn: (payload: any) => api.post('/admin/emails/test-send', payload),
     onSuccess: (res) => {
-      message.success('Email test submitted')
+      void message.success('Email test submitted')
       setTaskId(res.data.task_id)
     },
     onError: (error: any) => {
       const detail = error.response?.data?.detail
       if (typeof detail === 'string') {
-        message.error(detail)
+        void message.error(detail)
       } else if (Array.isArray(detail)) {
-        message.error(detail.map((e: any) => e.msg).join(', '))
+        void message.error(detail.map((e: any) => e.msg).join(', '))
       } else {
-        message.error('Failed to submit email test')
+        void message.error('Failed to submit email test')
       }
     },
   })
@@ -70,12 +70,12 @@ export default function TestEmailPage() {
   }
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
+    <Flex vertical gap="middle" style={{ width: '100%' }}>
       <Form form={form} layout="vertical" onFinish={onFinish}>
         <Form.Item name="api_key_id" label="API Key" rules={[{ required: true }]}>
-          <Select>
-            {keys.map((k) => <Select.Option key={k.id} value={k.id}>{k.client_name}</Select.Option>)}
-          </Select>
+          <Select
+            options={keys.map((k) => ({ value: k.id, label: k.client_name }))}
+          />
         </Form.Item>
         <Form.Item name="from_address" label="From Address" rules={[{ required: true }]}>
           <Input />
@@ -109,13 +109,25 @@ export default function TestEmailPage() {
       </Form>
       {taskId && status && (
         <Card title="Status" extra={isFetching && 'Polling...'}>
-          <Descriptions column={1}>
-            <Descriptions.Item label="Task ID">{status.task_id}</Descriptions.Item>
-            <Descriptions.Item label="Status"><Badge status={status.status === 'sent' ? 'success' : status.status === 'failed' ? 'error' : 'processing'} text={status.status} /></Descriptions.Item>
-            <Descriptions.Item label="Error">{status.error_message || '-'}</Descriptions.Item>
-          </Descriptions>
+          <Descriptions
+            column={1}
+            items={[
+              { key: 'task_id', label: 'Task ID', children: status.task_id },
+              {
+                key: 'status',
+                label: 'Status',
+                children: (
+                  <Badge
+                    status={status.status === 'sent' ? 'success' : status.status === 'failed' ? 'error' : 'processing'}
+                    text={status.status}
+                  />
+                ),
+              },
+              { key: 'error', label: 'Error', children: status.error_message || '-' },
+            ]}
+          />
         </Card>
       )}
-    </Space>
+    </Flex>
   )
 }

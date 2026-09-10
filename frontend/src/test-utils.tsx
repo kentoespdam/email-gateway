@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App as AntdApp } from 'antd'
 import { MemoryRouter } from 'react-router-dom'
 import { render, type RenderOptions } from '@testing-library/react'
 import { vi } from 'vitest'
@@ -39,9 +39,11 @@ export function renderApp(ui: ReactNode, options?: RenderOptions) {
       {/* motion:false = official antd recommendation for tests; jsdom never fires
           animationend, so leave-animations would leave stale DOM behind. */}
       <ConfigProvider theme={{ token: { colorPrimary: '#1677ff', motion: false } }}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>{ui}</AuthProvider>
-        </QueryClientProvider>
+        <AntdApp>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>{ui}</AuthProvider>
+          </QueryClientProvider>
+        </AntdApp>
       </ConfigProvider>
     </MemoryRouter>,
     options,

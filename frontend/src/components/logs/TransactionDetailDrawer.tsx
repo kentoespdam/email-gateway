@@ -1,23 +1,48 @@
-import { Collapse, Descriptions, Drawer, Tag, Alert } from 'antd';
-import type { Transaction } from '../../api/types';
+import { Collapse, Descriptions, Drawer, Tag, Alert } from 'antd'
+import type { DescriptionsProps, CollapseProps } from 'antd'
+import type { Transaction } from '../../api/types'
 
 interface Props {
-  transaction: Transaction | null;
-  open: boolean;
-  onClose: () => void;
+  transaction: Transaction | null
+  open: boolean
+  onClose: () => void
 }
 
 export default function TransactionDetailDrawer({ transaction, open, onClose }: Props) {
-  if (!transaction) return null;
+  if (!transaction) return null
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'sent': return 'success';
-      case 'failed': return 'error';
-      case 'queued': return 'processing';
-      default: return 'default';
+      case 'sent': return 'success'
+      case 'failed': return 'error'
+      case 'queued': return 'processing'
+      default: return 'default'
     }
-  };
+  }
+
+  const items: DescriptionsProps['items'] = [
+    { key: 'id', label: 'ID', children: transaction.id },
+    { key: 'task_id', label: 'Task ID', children: transaction.task_id },
+    { key: 'from', label: 'From', children: transaction.from_address },
+    { key: 'to', label: 'To', children: (transaction.to_addresses || []).join(', ') },
+    { key: 'cc', label: 'CC', children: (transaction.cc_addresses || []).join(', ') || '-' },
+    { key: 'attachments', label: 'Attachments', children: transaction.attachment_count },
+    { key: 'retries', label: 'Retries', children: transaction.retry_count },
+    { key: 'created_at', label: 'Created At', children: transaction.created_at ? new Date(transaction.created_at).toLocaleString() : '-' },
+    { key: 'delivered_at', label: 'Delivered At', children: transaction.delivered_at ? new Date(transaction.delivered_at).toLocaleString() : '-' },
+  ]
+
+  const collapseItems: CollapseProps['items'] = [
+    {
+      key: '1',
+      label: 'Raw JSON Data',
+      children: (
+        <pre className="p-3 rounded text-xs font-mono overflow-x-auto bg-gray-100 text-gray-800 dark:bg-[#1f1f1f] dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+          {JSON.stringify(transaction, null, 2)}
+        </pre>
+      ),
+    },
+  ]
 
   return (
     <Drawer
@@ -40,25 +65,9 @@ export default function TransactionDetailDrawer({ transaction, open, onClose }: 
         />
       )}
 
-      <Descriptions bordered column={1} size="small" style={{ marginBottom: 24 }}>
-        <Descriptions.Item label="ID">{transaction.id}</Descriptions.Item>
-        <Descriptions.Item label="Task ID">{transaction.task_id}</Descriptions.Item>
-        <Descriptions.Item label="From">{transaction.from_address}</Descriptions.Item>
-        <Descriptions.Item label="To">{transaction.to_addresses.join(', ')}</Descriptions.Item>
-        <Descriptions.Item label="CC">{transaction.cc_addresses.join(', ') || '-'}</Descriptions.Item>
-        <Descriptions.Item label="Attachments">{transaction.attachment_count}</Descriptions.Item>
-        <Descriptions.Item label="Retries">{transaction.retry_count}</Descriptions.Item>
-        <Descriptions.Item label="Created At">{transaction.created_at ? new Date(transaction.created_at).toLocaleString() : '-'}</Descriptions.Item>
-        <Descriptions.Item label="Delivered At">{transaction.delivered_at ? new Date(transaction.delivered_at).toLocaleString() : '-'}</Descriptions.Item>
-      </Descriptions>
+      <Descriptions bordered column={1} size="small" style={{ marginBottom: 24 }} items={items} />
 
-      <Collapse ghost>
-        <Collapse.Panel header="Raw JSON Data" key="1">
-          <pre className="p-3 rounded text-xs font-mono overflow-x-auto bg-gray-100 text-gray-800 dark:bg-[#1f1f1f] dark:text-gray-200 border border-gray-200 dark:border-gray-700">
-            {JSON.stringify(transaction, null, 2)}
-          </pre>
-        </Collapse.Panel>
-      </Collapse>
+      <Collapse ghost items={collapseItems} />
     </Drawer>
-  );
+  )
 }
