@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Badge, DatePicker, Input, Select, Space, Table } from 'antd'
+import { Badge, Button, DatePicker, Input, Select, Space, Table } from 'antd'
 import { useEffect, useState } from 'react'
+import { EyeOutlined, RedoOutlined } from '@ant-design/icons'
 import api from '../api/client'
-import type { ApiKey, TransactionPage } from '../api/types'
+import type { ApiKey, Transaction, TransactionPage } from '../api/types'
+import TransactionDetailDrawer from '../components/logs/TransactionDetailDrawer'
 
 const { RangePicker } = DatePicker
 
@@ -21,8 +23,8 @@ interface Filters {
 export default function LogsPage() {
   const [filters, setFilters] = useState<Filters>({ page: 1, page_size: 50 })
   const [subjectInput, setSubjectInput] = useState('')
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
 
-  // Debounced subject search (500ms).
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters((prev) =>
@@ -32,7 +34,7 @@ export default function LogsPage() {
     return () => clearTimeout(timer)
   }, [subjectInput])
 
-  const { data, isLoading, dataUpdatedAt } = useQuery({
+  const { data, isLoading, dataUpdatedAt, refetch } = useQuery({
     queryKey: ['transactions', filters],
     queryFn: async () =>
       (await api.get<TransactionPage>('/admin/transactions', { params: filters })).data,
@@ -83,9 +85,12 @@ export default function LogsPage() {
       render: (value: string | null) => (value ? new Date(value).toLocaleString() : '-'),
     },
     {
-      title: 'Delivered',
-      dataIndex: 'delivered_at',
-      render: (value: string | null) => (value ? new Date(value).toLocaleString() : '-'),
+      title: 'Action',
+      key: 'action',
+      width: 80,
+      render: (_: any, record: Transaction) => (
+        <Button icon={<EyeOutlined />} onClick={() => setSelectedTransaction(record)} />
+      ),
     },
   ]
 
@@ -137,6 +142,9 @@ export default function LogsPage() {
           onChange={(e) => setSubjectInput(e.target.value)}
           onSearch={(subject) => setFilter({ subject: subject || undefined })}
         />
+        <Button icon={<RedoOutlined />} onClick={() => refetch()} loading={isLoading}>
+          Refresh
+        </Button>
       </Space>
 
       <Table
@@ -153,6 +161,12 @@ export default function LogsPage() {
         }}
         footer={() => <span style={{ color: '#999' }}>Last updated: {secondsAgo}s ago</span>}
       />
+      <TransactionDetailDrawer
+        transaction={selectedTransaction}
+        open={!!selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+      />
     </>
   )
 }
+

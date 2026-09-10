@@ -18,6 +18,7 @@ Untuk urutan pengerjaan fitur/tugas implementasi, pantau dan ikuti [CLAIM_ORDER.
     - [x] Linters passed
     - [x] `gitnexus_detect_changes` verified
 - [x] **Completion**:
+    - [x] UI Frontend modernization (dashboard, theme, drawer)
     - [x] `bd close <id>`
     - [x] `git pull --rebase`
     - [x] `git push`

@@ -1,8 +1,10 @@
-import { Layout, Menu } from 'antd'
-import { KeyOutlined, FileTextOutlined, TeamOutlined, UserOutlined, MailOutlined } from '@ant-design/icons'
+import { Layout, Menu, Space, Badge } from 'antd'
+import { KeyOutlined, FileTextOutlined, TeamOutlined, UserOutlined, MailOutlined, DashboardOutlined } from '@ant-design/icons'
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { ThemeToggle } from './components/common/ThemeToggle'
 import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 import ApiKeysPage from './pages/ApiKeysPage'
 import UsersPage from './pages/UsersPage'
 import LogsPage from './pages/LogsPage'
@@ -11,6 +13,7 @@ import TestEmailPage from './pages/TestEmailPage'
 const { Header, Sider, Content } = Layout
 
 const MENU_ITEMS = [
+  { key: '/dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
   { key: '/api-keys', icon: <KeyOutlined />, label: 'API Keys' },
   { key: '/users', icon: <TeamOutlined />, label: 'Users' },
   { key: '/logs', icon: <FileTextOutlined />, label: 'Logs' },
@@ -42,14 +45,20 @@ function Shell() {
           style={{
             background: '#fff',
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: 12,
+            padding: '0 16px',
           }}
         >
-          <UserOutlined />
-          <span>{user.username}</span>
-          <a onClick={logout}>Logout</a>
+          <Badge status="processing" color="#52c41a" text="Gateway Online" />
+          <Space size="middle">
+            <ThemeToggle />
+            <Space>
+              <UserOutlined />
+              <span>{user.username}</span>
+            </Space>
+            <a onClick={logout}>Logout</a>
+          </Space>
         </Header>
         <Content style={{ margin: 16 }}>
           <Outlet />
@@ -65,7 +74,8 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<Shell />}>
-          <Route path="/" element={<Navigate to="/api-keys" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/api-keys" element={<ApiKeysPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/logs" element={<LogsPage />} />
