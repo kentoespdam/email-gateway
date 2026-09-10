@@ -1,6 +1,6 @@
 # Email Gateway
 
-Microservice tunggal yang menerima permintaan pengiriman email dari aplikasi internal via REST API, mengantrekannya ke Redis, dan mengirimkannya ke server SMTP melalui Celery worker.
+Microservice tunggal yang menerima permintaan pengiriman email dari aplikasi internal via REST API, mengantrekannya ke Redis, dan mengirimkannya ke server SMTP melalui Celery worker. Dilengkapi Dashboard web internal untuk manajemen API Key, pemantauan Mail Transaction, dan pengelolaan AdminUser.
 
 ## Language
 

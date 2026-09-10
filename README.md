@@ -8,7 +8,8 @@ HTTP, queues them, and delivers them via SMTP (connection-per-task).
 - **API**: FastAPI, Pydantic V2 (`app/`)
 - **Worker**: Celery + Redis, smtplib with STARTTLS (`worker/`)
 - **DB**: PostgreSQL 16, SQLAlchemy 2, Alembic (`app/models.py`, `alembic/`)
-- **Toolchain**: `uv` for everything (`uv sync`, `uv run`, `uv add`)
+- **Dashboard**: React + Vite + TypeScript, Ant Design, TanStack Query (`frontend/`)
+- **Toolchain**: `uv` for Python, `bun` for frontend (`uv sync`, `bun install`)
 
 ## Quick start
 
@@ -18,6 +19,29 @@ docker compose up -d         # PostgreSQL 16 + Redis 7
 export DATABASE_URL=postgresql+psycopg2://gateway:gateway@localhost:5432/email_gateway
 uv run alembic upgrade head  # create tables
 uv run scripts/seed_api_key.py  # seed an API key (see below)
+```
+
+## Dashboard (Admin UI)
+
+Dashboard memerlukan env var tambahan di `.env`:
+
+```bash
+ALLOWED_ORIGINS=http://localhost:5173
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=changeme123   # ganti sebelum deploy
+```
+
+Jalankan Dashboard (development, tanpa Docker):
+
+```bash
+cd frontend
+bun install
+bun dev          # buka http://localhost:5173
+```
+
+Login pertama menggunakan `ADMIN_USERNAME` dan `ADMIN_PASSWORD` dari env.
+Setelah login, buat AdminUser tambahan dari menu Users.
+
 ```
 
 Run the services:
