@@ -16,6 +16,8 @@ export const ThemeContextProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     localStorage.setItem('theme_mode', mode);
+    document.documentElement.classList.toggle('dark', mode === 'dark');
+    document.documentElement.style.colorScheme = mode;
   }, [mode]);
 
   const toggleTheme = () => {

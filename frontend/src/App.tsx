@@ -1,8 +1,10 @@
-import { Layout, Menu, Space, Badge } from 'antd'
-import { KeyOutlined, FileTextOutlined, TeamOutlined, UserOutlined, MailOutlined, DashboardOutlined } from '@ant-design/icons'
-import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Space, Badge, Button } from 'antd'
+import { UserOutlined, MenuOutlined } from '@ant-design/icons'
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ThemeToggle } from './components/common/ThemeToggle'
+import { Sidebar } from './components/Sidebar'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ApiKeysPage from './pages/ApiKeysPage'
@@ -10,61 +12,81 @@ import UsersPage from './pages/UsersPage'
 import LogsPage from './pages/LogsPage'
 import TestEmailPage from './pages/TestEmailPage'
 
-const { Header, Sider, Content } = Layout
-
-const MENU_ITEMS = [
-  { key: '/dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
-  { key: '/api-keys', icon: <KeyOutlined />, label: 'API Keys' },
-  { key: '/users', icon: <TeamOutlined />, label: 'Users' },
-  { key: '/logs', icon: <FileTextOutlined />, label: 'Logs' },
-  { key: '/test-email', icon: <MailOutlined />, label: 'Test Email' },
-]
-
 function Shell() {
   const { user, isLoading, logout } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   if (isLoading) return null
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (!user) return <Navigate to="/login" replace />
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider>
-        <div style={{ color: '#fff', padding: 16, fontWeight: 600 }}>Email Gateway</div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          items={MENU_ITEMS}
-          onClick={({ key }) => navigate(key)}
-        />
-      </Sider>
-      <Layout>
-        <Header
-          style={{
-            background: '#fff',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '0 16px',
-          }}
-        >
-          <Badge status="processing" color="#52c41a" text="Gateway Online" />
+    <div className="min-h-screen flex bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100 transition-colors duration-200">
+      {/* Skip Link Accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:font-medium focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      >
+        Skip to main content
+      </a>
+
+      {/* Sidebar Component */}
+      <Sidebar
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((prev) => !prev)}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
+
+      {/* Main Layout Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header */}
+        <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414] transition-colors duration-200 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <Button
+              type="text"
+              icon={<MenuOutlined />}
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden flex items-center justify-center text-gray-700 dark:text-gray-200"
+              aria-label="Open navigation menu"
+            />
+            <Badge
+              status="processing"
+              color="#52c41a"
+              text={
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Gateway Online
+                </span>
+              }
+            />
+          </div>
+
           <Space size="middle">
             <ThemeToggle />
-            <Space>
+            <Space className="text-gray-700 dark:text-gray-300 text-sm">
               <UserOutlined />
               <span>{user.username}</span>
             </Space>
-            <a onClick={logout}>Logout</a>
+            <Button
+              type="link"
+              onClick={logout}
+              className="text-red-500 hover:text-red-600 p-0"
+            >
+              Logout
+            </Button>
           </Space>
-        </Header>
-        <Content style={{ margin: 16 }}>
+        </header>
+
+        {/* Content Area */}
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 p-4 md:p-6 overflow-y-auto outline-none"
+        >
           <Outlet />
-        </Content>
-      </Layout>
-    </Layout>
+        </main>
+      </div>
+    </div>
   )
 }
 
