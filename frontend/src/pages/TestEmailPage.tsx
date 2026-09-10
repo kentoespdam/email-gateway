@@ -23,7 +23,7 @@ export default function TestEmailPage() {
   })
 
   const sendEmail = useMutation({
-    mutationFn: async (payload: any) => await api.post('/api/v1/emails/send', payload),
+    mutationFn: async (payload: any) => await api.post('/admin/emails/test-send', payload),
     onSuccess: (res) => {
       message.success('Email test submitted')
       setTaskId(res.data.task_id)
@@ -32,7 +32,12 @@ export default function TestEmailPage() {
   })
 
   const onFinish = (values: any) => {
-    sendEmail.mutate(values)
+    // Map 'to' input to 'to' array for payload matching EmailPayload schema
+    const payload = {
+      ...values,
+      to: typeof values.to === 'string' ? values.to.split(',').map((s: string) => s.trim()) : values.to
+    }
+    sendEmail.mutate(payload)
   }
 
   return (
