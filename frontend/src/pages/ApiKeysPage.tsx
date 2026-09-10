@@ -16,6 +16,7 @@ import {
 import { useState } from 'react'
 import api from '../api/client'
 import type { ApiKey, ApiKeyCreated } from '../api/types'
+import { MaskedTokenCell } from '../components/MaskedTokenCell'
 
 interface ApiKeyForm {
   client_name: string
@@ -104,14 +105,7 @@ export default function ApiKeysPage() {
     {
       title: 'Key Token',
       dataIndex: 'key_token',
-      render: (token: string) => (
-        <Input.Password
-          value={token}
-          readOnly
-          style={{ width: 200 }}
-          iconRender={(visible) => (visible ? <Typography.Text copyable={{ text: token }} /> : <></>)}
-        />
-      ),
+      render: (token: string) => <MaskedTokenCell token={token} />,
     },
     { title: 'Client', dataIndex: 'client_name' },
     {
