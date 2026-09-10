@@ -17,7 +17,7 @@ Rujuk ADR: `docs/adr/0007-expose-api-key-token-in-get-response.md` dan `docs/adr
 
 ### Phase 4 — Frontend Feature: Test Email Page (setelah Issue 3 & 4)
 - [x] email-gateway-289 — [FE] Test Email page — form
-- [ ] email-gateway-o8m — [FE] Test Email page — result panel + auto-poll
+- [x] email-gateway-o8m — [FE] Test Email page — result panel + auto-poll
 
 ## Keputusan Desain
 
