@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Space, Typography, message } from 'antd'
+import { Button, Typography, message } from 'antd'
 import { EyeOutlined, EyeInvisibleOutlined, CopyOutlined } from '@ant-design/icons'
 
 interface MaskedTokenCellProps {
@@ -16,8 +16,8 @@ export function MaskedTokenCell({ token }: MaskedTokenCellProps) {
     : '••••••••'
 
   return (
-    <Space>
-      <Typography.Text code>
+    <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+      <Typography.Text code className="whitespace-nowrap font-mono text-xs">
         {visible ? token : masked}
       </Typography.Text>
       <Button
@@ -41,6 +41,6 @@ export function MaskedTokenCell({ token }: MaskedTokenCellProps) {
             })
         }}
       />
-    </Space>
+    </div>
   )
 }

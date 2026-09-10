@@ -108,20 +108,22 @@ export default function ApiKeysPage() {
     {
       title: 'ID',
       dataIndex: 'id',
-      width: 120,
-      render: (id: string) => <Typography.Text code>{id.slice(0, 8)}…</Typography.Text>,
+      width: 110,
+      render: (id: string) => <Typography.Text code className="whitespace-nowrap font-mono">{id.slice(0, 8)}…</Typography.Text>,
     },
     {
       title: 'Key Token',
       dataIndex: 'key_token',
-      render: (token: string) => <MaskedTokenCell token={token} />,
+      width: 240,
+      render: (token: string) => <div className="whitespace-nowrap"><MaskedTokenCell token={token} /></div>,
     },
-    { title: 'Client', dataIndex: 'client_name' },
+    { title: 'Client', dataIndex: 'client_name', width: 140 },
     {
       title: 'Allowed From',
       dataIndex: 'allowed_from_addresses',
+      width: 220,
       render: (addresses: string[]) =>
-        (addresses || []).map((a) => <Tag key={a}>{a}</Tag>),
+        <div className="flex flex-wrap gap-1">{(addresses || []).map((a) => <Tag key={a}>{a}</Tag>)}</div>,
     },
     {
       title: 'Active',
@@ -137,17 +139,19 @@ export default function ApiKeysPage() {
     {
       title: 'Expires',
       dataIndex: 'expires_at',
+      width: 170,
       render: (value: string | null) =>
         value ? new Date(value).toLocaleString() : 'Never',
     },
     {
       title: 'Created',
       dataIndex: 'created_at',
+      width: 170,
       render: (value: string | null) => (value ? new Date(value).toLocaleString() : '-'),
     },
     {
       title: 'Actions',
-      width: 160,
+      width: 140,
       render: (_: unknown, record: ApiKey) => (
         <Space>
           <Button size="small" onClick={() => openEdit(record)}>
@@ -175,8 +179,39 @@ export default function ApiKeysPage() {
         </Button>
       </div>
 
-      <div className="w-full overflow-x-auto rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414]">
-        <Table rowKey="id" columns={columns} dataSource={keys} loading={isLoading} scroll={{ x: 800 }} />
+      {/* Desktop Table */}
+      <div className="hidden md:block w-full overflow-x-auto rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414]">
+        <Table rowKey="id" columns={columns} dataSource={keys} loading={isLoading} scroll={{ x: 1280 }} />
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? <div className="p-4 text-center">Loading...</div> : keys.map(key => (
+          <div key={key.id} className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414] shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-base">{key.client_name}</span>
+              <div className="flex items-center gap-2">
+                <Switch size="small" checked={key.is_active} onChange={(c) => updateKey.mutate({ id: key.id, is_active: c })} />
+                <Typography.Text code className="text-xs">{key.id.slice(0, 6)}</Typography.Text>
+              </div>
+            </div>
+            <div className="mt-2 mb-2 p-2 bg-gray-50 dark:bg-gray-900 rounded border border-gray-100 dark:border-gray-800 flex items-center justify-between">
+              <span className="text-xs text-gray-500 font-medium">Token:</span>
+              <MaskedTokenCell token={key.key_token} />
+            </div>
+            <div className="text-sm mb-2">{key.allowed_from_addresses.map(a => <Tag key={a} className="mb-1">{a}</Tag>)}</div>
+            <div className="text-xs text-gray-500">
+              {key.expires_at ? `Expires: ${new Date(key.expires_at).toLocaleString()}` : 'No expiry'} | Dibuat: {key.created_at ? new Date(key.created_at).toLocaleString() : '-'}
+            </div>
+            <div className="flex gap-2 mt-4">
+              <Button size="small" className="h-9 flex-1" onClick={() => openEdit(key)}>Edit</Button>
+              <Popconfirm title="Delete?" onConfirm={() => deleteKey.mutate(key.id)}>
+                <Button size="small" danger className="h-9 flex-1">Delete</Button>
+              </Popconfirm>
+            </div>
+          </div>
+        ))}
+        {keys.length === 0 && !isLoading && <div className="p-4 text-center text-gray-500">No API keys found.</div>}
       </div>
 
       <Modal
