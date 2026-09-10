@@ -108,7 +108,7 @@ Urutan claim berdasarkan dependency antar issue.
 
 ## Group 7 — Docker & Deploy (claim setelah semua selesai)
 
-- [ ] **INFRA-1** `feat: update docker-compose.yml for frontend`
+- [x] **INFRA-1** `feat: update docker-compose.yml for frontend`
   - Tambah service `frontend`: build dari `./frontend/Dockerfile`, port `3000:80`
   - Tambah env var baru ke service `api`: `ALLOWED_ORIGINS`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`
 
