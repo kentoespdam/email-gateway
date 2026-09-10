@@ -11,6 +11,7 @@ body {
   min-height: 100svh;
   box-sizing: border-box;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 *,
@@ -26,6 +27,11 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+.ant-table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* Custom scrollbar */
@@ -49,6 +55,8 @@ body {
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
   border-color: #d9d9d9;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .ql-container.ql-snow {

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Badge, Button, DatePicker, Input, Select, Space, Table } from 'antd'
+import { Badge, Button, DatePicker, Input, Select, Table } from 'antd'
 import { useEffect, useState } from 'react'
 import { EyeOutlined, RedoOutlined } from '@ant-design/icons'
 import api from '../api/client'
@@ -105,11 +105,11 @@ export default function LogsPage() {
 
   return (
     <>
-      <Space wrap style={{ marginBottom: 16 }}>
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 mb-4">
         <Select
           allowClear
           placeholder="Status"
-          style={{ width: 130 }}
+          className="w-full sm:w-32"
           options={[
             { value: 'queued', label: 'Queued' },
             { value: 'sent', label: 'Sent' },
@@ -118,6 +118,7 @@ export default function LogsPage() {
           onChange={(status) => setFilter({ status })}
         />
         <RangePicker
+          className="w-full sm:w-auto"
           onChange={(dates) =>
             setFilter({
               from_date: dates?.[0]?.format('YYYY-MM-DD'),
@@ -129,37 +130,40 @@ export default function LogsPage() {
           allowClear
           showSearch={{ optionFilterProp: 'label' }}
           placeholder="API Key"
-          style={{ width: 180 }}
+          className="w-full sm:w-44"
           options={apiKeys.map((k) => ({ value: k.id, label: k.client_name }))}
           onChange={(api_key_id) => setFilter({ api_key_id })}
         />
         <Input.Search
           placeholder="Search subject"
           allowClear
-          style={{ width: 240 }}
+          className="w-full sm:w-60"
           value={subjectInput}
           onChange={(e) => setSubjectInput(e.target.value)}
           onSearch={(subject) => setFilter({ subject: subject || undefined })}
         />
-        <Button icon={<RedoOutlined />} onClick={() => refetch()} loading={isLoading}>
+        <Button icon={<RedoOutlined />} onClick={() => refetch()} loading={isLoading} className="w-full sm:w-auto">
           Refresh
         </Button>
-      </Space>
+      </div>
 
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={data?.items}
-        loading={isLoading}
-        pagination={{
-          current: data?.page ?? 1,
-          pageSize: data?.page_size ?? 50,
-          total: data?.total_count ?? 0,
-          showSizeChanger: true,
-          onChange: (page, page_size) => setFilters((prev) => ({ ...prev, page, page_size })),
-        }}
-        footer={() => <span style={{ color: '#999' }}>Last updated: {secondsAgo}s ago</span>}
-      />
+      <div className="w-full overflow-x-auto rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414]">
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={data?.items}
+          loading={isLoading}
+          pagination={{
+            current: data?.page ?? 1,
+            pageSize: data?.page_size ?? 50,
+            total: data?.total_count ?? 0,
+            showSizeChanger: true,
+            onChange: (page, page_size) => setFilters((prev) => ({ ...prev, page, page_size })),
+          }}
+          scroll={{ x: 850 }}
+          footer={() => <span className="text-xs text-gray-500 dark:text-gray-400">Last updated: {secondsAgo}s ago</span>}
+        />
+      </div>
       <TransactionDetailDrawer
         transaction={selectedTransaction}
         open={!!selectedTransaction}

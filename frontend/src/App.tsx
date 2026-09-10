@@ -41,13 +41,13 @@ function Shell() {
       {/* Main Layout Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414] transition-colors duration-200 sticky top-0 z-10">
+        <header className="h-16 px-3 sm:px-4 md:px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414] transition-colors duration-200 sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <Button
               type="text"
               icon={<MenuOutlined />}
               onClick={() => setMobileOpen(true)}
-              className="md:hidden flex items-center justify-center text-gray-700 dark:text-gray-200"
+              className="md:hidden flex items-center justify-center text-gray-700 dark:text-gray-200 min-h-[44px] min-w-[44px]"
               aria-label="Open navigation menu"
             />
             <Badge
@@ -63,14 +63,14 @@ function Shell() {
 
           <Space size="middle">
             <ThemeToggle />
-            <Space className="text-gray-700 dark:text-gray-300 text-sm">
+            <Space className="text-gray-700 dark:text-gray-300 text-sm hidden sm:flex">
               <UserOutlined />
               <span>{user.username}</span>
             </Space>
             <Button
               type="link"
               onClick={logout}
-              className="text-red-500 hover:text-red-600 p-0"
+              className="text-red-500 hover:text-red-600 p-0 min-h-[44px]"
             >
               Logout
             </Button>
@@ -81,9 +81,11 @@ function Shell() {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 p-4 md:p-6 overflow-y-auto outline-none"
+          className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto outline-none"
         >
-          <Outlet />
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

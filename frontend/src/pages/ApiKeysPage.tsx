@@ -168,10 +168,16 @@ export default function ApiKeysPage() {
 
   return (
     <>
-      <Button type="primary" onClick={openCreate} style={{ marginBottom: 16 }}>
-        Create API Key
-      </Button>
-      <Table rowKey="id" columns={columns} dataSource={keys} loading={isLoading} />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <Typography.Title level={2} style={{ margin: 0 }}>API Keys</Typography.Title>
+        <Button type="primary" onClick={openCreate} className="w-full sm:w-auto h-10">
+          Create API Key
+        </Button>
+      </div>
+
+      <div className="w-full overflow-x-auto rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414]">
+        <Table rowKey="id" columns={columns} dataSource={keys} loading={isLoading} scroll={{ x: 800 }} />
+      </div>
 
       <Modal
         title={editing ? 'Edit API Key' : 'Create API Key'}
@@ -179,6 +185,7 @@ export default function ApiKeysPage() {
         onCancel={() => setModalOpen(false)}
         onOk={() => form.submit()}
         confirmLoading={createKey.isPending || updateKey.isPending}
+        style={{ maxWidth: 'calc(100vw - 32px)' }}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
@@ -210,6 +217,7 @@ export default function ApiKeysPage() {
             I have saved the key
           </Button>
         }
+        style={{ maxWidth: 'calc(100vw - 32px)' }}
       >
         <Typography.Paragraph type="warning">
           Copy this token now — it will not be shown again.

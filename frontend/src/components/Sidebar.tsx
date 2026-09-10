@@ -9,9 +9,11 @@ import {
   MailOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import { Space } from 'antd'
 
 export interface SidebarProps {
   collapsed: boolean
@@ -146,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         }
       >
-        <nav aria-label="Mobile Navigation" className="py-2 px-2">
+        <nav aria-label="Mobile Navigation" className="py-2 px-2 flex-1">
           <Menu
             mode="inline"
             selectedKeys={[location.pathname]}
@@ -156,6 +158,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             style={{ borderRight: 0, background: 'transparent' }}
           />
         </nav>
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+          <Space className="text-gray-700 dark:text-gray-300 text-sm">
+            <UserOutlined />
+            <span>Profile</span>
+          </Space>
+          <Button type="link" onClick={() => navigate('/login')} className="text-red-500">
+            Logout
+          </Button>
+        </div>
       </Drawer>
     </>
   )

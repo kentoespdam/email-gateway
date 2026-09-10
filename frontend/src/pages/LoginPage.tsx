@@ -1,6 +1,7 @@
 import { Button, Card, Form, Input, message } from 'antd'
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { MailOutlined } from '@ant-design/icons'
 
 interface LoginForm {
   username: string
@@ -23,16 +24,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#f5f5f5',
-      }}
-    >
-      <Card title="Email Gateway — Admin Login" style={{ width: 360 }}>
+    <div className="min-h-screen min-h-svh min-h-dvh flex items-center justify-center p-4 bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-100">
+      <Card 
+        title={
+          <div className="flex items-center gap-2">
+            <MailOutlined />
+            <span>Email Gateway — Admin Login</span>
+          </div>
+        } 
+        className="w-full max-w-sm sm:max-w-md shadow-xl rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414]"
+      >
         <Form layout="vertical" onFinish={onFinish}>
           <Form.Item name="username" label="Username" rules={[{ required: true }]}>
             <Input autoFocus />
@@ -40,7 +41,7 @@ export default function LoginPage() {
           <Form.Item name="password" label="Password" rules={[{ required: true }]}>
             <Input.Password />
           </Form.Item>
-          <Button type="primary" htmlType="submit" block loading={submitting}>
+          <Button type="primary" htmlType="submit" block loading={submitting} className="h-11 text-base font-medium rounded-lg">
             Log in
           </Button>
         </Form>

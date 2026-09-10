@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Form, Input, Select, Radio, message, Card, Descriptions, Badge, Flex } from 'antd'
+import { Button, Form, Input, Select, Radio, message, Card, Descriptions, Badge } from 'antd'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import ReactQuill from 'react-quill-new'
 import 'quill/dist/quill.snow.css'
@@ -70,8 +70,12 @@ export default function TestEmailPage() {
   }
 
   return (
-    <Flex vertical gap="middle" style={{ width: '100%' }}>
-      <Form form={form} layout="vertical" onFinish={onFinish}>
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Test Email</h1>
+        <p className="text-gray-500 dark:text-gray-400">Send a test email using your API keys.</p>
+      </div>
+      <Form form={form} layout="vertical" onFinish={onFinish} className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414] shadow-sm mb-6">
         <Form.Item name="api_key_id" label="API Key" rules={[{ required: true }]}>
           <Select
             options={keys.map((k) => ({ value: k.id, label: k.client_name }))}
@@ -105,7 +109,7 @@ export default function TestEmailPage() {
             />
           </Form.Item>
         )}
-        <Button type="primary" htmlType="submit" loading={sendEmail.isPending}>Send Test Email</Button>
+        <Button type="primary" htmlType="submit" loading={sendEmail.isPending} className="w-full sm:w-auto h-11 text-base font-medium">Send Test Email</Button>
       </Form>
       {taskId && status && (
         <Card title="Status" extra={isFetching && 'Polling...'}>
@@ -128,6 +132,6 @@ export default function TestEmailPage() {
           />
         </Card>
       )}
-    </Flex>
+    </div>
   )
 }

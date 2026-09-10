@@ -47,7 +47,8 @@ export default function TransactionDetailDrawer({ transaction, open, onClose }: 
   return (
     <Drawer
       title={`Transaction: ${transaction.task_id}`}
-      width={640}
+      width={typeof window !== 'undefined' && window.innerWidth < 640 ? '100%' : 580}
+      styles={{ wrapper: { maxWidth: '100vw' } }}
       onClose={onClose}
       open={open}
     >
@@ -58,14 +59,17 @@ export default function TransactionDetailDrawer({ transaction, open, onClose }: 
       {transaction.error_message && (
         <Alert
           message="Error Details"
-          description={<pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{transaction.error_message}</pre>}
+          description={<pre className="whitespace-pre-wrap font-mono text-xs break-all overflow-x-auto">{transaction.error_message}</pre>}
           type="error"
           showIcon
           style={{ marginBottom: 24 }}
         />
       )}
 
-      <Descriptions bordered column={1} size="small" style={{ marginBottom: 24 }} items={items} />
+      <Descriptions bordered column={1} size="small" style={{ marginBottom: 24 }} items={items.map(item => ({
+        ...item,
+        children: <div className="break-all">{item.children}</div>
+      }))} />
 
       <Collapse ghost items={collapseItems} />
     </Drawer>

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Form, Input, Modal, Popconfirm, Space, Table, message } from 'antd'
+import { Button, Form, Input, Modal, Popconfirm, Space, Table, message, Typography } from 'antd'
 import { useState } from 'react'
 import api from '../api/client'
 import type { AdminUser } from '../hooks/useAuth'
@@ -105,17 +105,22 @@ export default function UsersPage() {
 
   return (
     <>
-      <Button
-        type="primary"
-        style={{ marginBottom: 16 }}
-        onClick={() => {
-          form.resetFields()
-          setDialog({ kind: 'create' })
-        }}
-      >
-        Create User
-      </Button>
-      <Table rowKey="id" columns={columns} dataSource={users} loading={isLoading} pagination={false} />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <Typography.Title level={2} style={{ margin: 0 }}>Users</Typography.Title>
+        <Button
+          type="primary"
+          onClick={() => {
+            form.resetFields()
+            setDialog({ kind: 'create' })
+          }}
+          className="w-full sm:w-auto h-10"
+        >
+          Create User
+        </Button>
+      </div>
+      <div className="w-full overflow-x-auto rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414]">
+        <Table rowKey="id" columns={columns} dataSource={users} loading={isLoading} pagination={false} scroll={{ x: 500 }} />
+      </div>
 
       <Modal
         title={dialog?.kind === 'reset' ? `Reset password — ${dialog.user.username}` : 'Create user'}
@@ -123,6 +128,7 @@ export default function UsersPage() {
         onCancel={() => setDialog(null)}
         onOk={() => form.submit()}
         confirmLoading={createUser.isPending || resetPassword.isPending}
+        style={{ maxWidth: 'calc(100vw - 32px)' }}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
           {dialog?.kind === 'create' && (
