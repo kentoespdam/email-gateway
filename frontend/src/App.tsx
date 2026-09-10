@@ -1,11 +1,12 @@
 import { Layout, Menu } from 'antd'
-import { KeyOutlined, FileTextOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
+import { KeyOutlined, FileTextOutlined, TeamOutlined, UserOutlined, MailOutlined } from '@ant-design/icons'
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import LoginPage from './pages/LoginPage'
 import ApiKeysPage from './pages/ApiKeysPage'
 import UsersPage from './pages/UsersPage'
 import LogsPage from './pages/LogsPage'
+import TestEmailPage from './pages/TestEmailPage'
 
 const { Header, Sider, Content } = Layout
 
@@ -13,6 +14,7 @@ const MENU_ITEMS = [
   { key: '/api-keys', icon: <KeyOutlined />, label: 'API Keys' },
   { key: '/users', icon: <TeamOutlined />, label: 'Users' },
   { key: '/logs', icon: <FileTextOutlined />, label: 'Logs' },
+  { key: '/test-email', icon: <MailOutlined />, label: 'Test Email' },
 ]
 
 function Shell() {
@@ -67,6 +69,7 @@ export default function App() {
           <Route path="/api-keys" element={<ApiKeysPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/logs" element={<LogsPage />} />
+          <Route path="/test-email" element={<TestEmailPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
