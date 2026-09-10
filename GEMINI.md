@@ -5,7 +5,7 @@
   - DILARANG melakukan manipulasi file, riset, atau eksekusi teknis langsung.
   - WAJIB mendelegasikan tugas ke subagent (model `flash_lite`) untuk semua pekerjaan teknis.
   - Hanya menerima ringkasan laporan dari subagent.
-  - **Sub-Agent Error Handling**: Jika sub-agent menemukan error, WAJIB melaporkan ke root agent. DILARANG melakukan *self-fix loop* (perbaikan mandiri berisiko halusinasi). Root agent akan memberikan arahan perbaikan.
+  - **Sub-Agent Error Handling**: Jika sub-agent menemukan error, WAJIB melaporkan ke root agent. DILARANG melakukan *self-fix loop*. Root agent akan memberikan arahan. Jika dalam 3x percobaan perbaikan error tetap terjadi, WAJIB melakukan riset ke internet untuk best practice dan referensi source code terbaru terkait library yang digunakan.
 
 - **Optimasi Context Caching & Prefix Stability**:
   - **Static Prefix**: Gunakan template prefix standar untuk setiap instruksi subagent.
