@@ -18,10 +18,11 @@ uv sync                      # install dependencies
 docker compose up -d         # Jalankan DB, Redis, Worker, API (8000), FE (3000)
 # Opsi stack development (termasuk pgAdmin):
 # docker compose --profile development up -d (atau: make docker-up-dev)
-export DATABASE_URL=postgresql+psycopg2://gateway:gateway@localhost:5432/email_gateway
-uv run alembic upgrade head  # create tables
-uv run scripts/seed_api_key.py  # seed an API key
+make db-migrate              # create tables via docker container
+make db-seed                 # seed an API key via docker container
 ```
+
+> **Catatan Jaringan & Port:** Port PostgreSQL (5432) dan Redis (6379) tidak di-expose ke host dan hanya dapat diakses melalui internal Docker network. Gunakan `make db-shell` / `make redis-shell` atau container interaktif jika ingin berinteraksi dari host.
 
 ## Dashboard (Admin UI)
 Dashboard dapat diakses di http://localhost:3000.

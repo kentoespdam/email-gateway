@@ -301,7 +301,6 @@ Service `pgadmin` menggunakan profile `development` sehingga tidak otomatis berj
 services:
   redis:
     image: redis:7
-    ports: ["6379:6379"]
 
   postgres:
     image: postgres:16
@@ -309,7 +308,6 @@ services:
       POSTGRES_DB: email_gateway
       POSTGRES_USER: gateway
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports: ["5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
 
   pgadmin:
