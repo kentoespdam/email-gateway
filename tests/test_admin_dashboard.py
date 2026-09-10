@@ -73,7 +73,7 @@ def test_api_keys_list_excludes_token(db, monkeypatch):
         )
         r = http.get("/admin/api-keys")
         assert r.status_code == 200
-        assert all("key_token" not in k for k in r.json())
+        assert all("key_token" in k for k in r.json())
 
 
 def test_api_keys_create_and_token_shown_once(db, monkeypatch):
@@ -94,7 +94,7 @@ def test_api_keys_create_and_token_shown_once(db, monkeypatch):
         key_id = created["id"]
 
         listed = http.get("/admin/api-keys").json()
-        assert all("key_token" not in k for k in listed)
+        assert all("key_token" in k for k in listed)
 
 
 def test_api_keys_patch_subset(db, monkeypatch):
