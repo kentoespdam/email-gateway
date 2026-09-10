@@ -10,7 +10,7 @@ Rujuk ADR: `docs/adr/0007-expose-api-key-token-in-get-response.md` dan `docs/adr
 - [x] email-gateway-4an — [BE] Add POST /admin/emails/test-send proxy endpoint
 
 ### Phase 2 — Frontend Setup (setelah Phase 1)
-- [ ] email-gateway-u9v — [FE] Install @tinymce/tinymce-react dependency
+- [x] email-gateway-u9v — [FE] Install @tinymce/tinymce-react dependency
 
 ### Phase 3 — Frontend Feature: API Keys Page (setelah Issue 1)
 - [ ] email-gateway-3qe — [FE] API Keys page: masked key_token + eye toggle + copy
