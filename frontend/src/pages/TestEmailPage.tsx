@@ -1,9 +1,20 @@
 import { useState } from 'react'
 import { Button, Form, Input, Select, Radio, message, Card, Descriptions, Badge, Space } from 'antd'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { Editor } from '@tinymce/tinymce-react'
+import ReactQuill from 'react-quill-new'
+import 'quill/dist/quill.snow.css'
 import api from '../api/client'
 import type { ApiKey } from '../api/types'
+
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link', 'image'],
+    ['clean'],
+  ],
+}
 
 export default function TestEmailPage() {
   const [form] = Form.useForm()
@@ -78,14 +89,10 @@ export default function TestEmailPage() {
           </Form.Item>
         ) : (
           <Form.Item name="html_content" label="Content">
-            <Editor
-              apiKey="no-api-key"
-              init={{
-                height: 300,
-                menubar: false,
-                plugins: ['link', 'image', 'lists'],
-                toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat'
-              }}
+            <ReactQuill
+              theme="snow"
+              modules={quillModules}
+              placeholder="Write email HTML content here..."
             />
           </Form.Item>
         )}

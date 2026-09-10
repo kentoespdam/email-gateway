@@ -44,3 +44,99 @@ body {
   background: rgba(156, 163, 175, 0.7);
 }
 
+/* Quill Editor Styles */
+.ql-toolbar.ql-snow {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-color: #d9d9d9;
+}
+
+.ql-container.ql-snow {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-color: #d9d9d9;
+  min-height: 200px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+/* Quill Dark Mode */
+.dark .ql-toolbar.ql-snow,
+.dark .ql-toolbar {
+  background-color: #1f1f1f;
+  border-color: #303030;
+  color: #e5e7eb;
+}
+
+.dark .ql-container.ql-snow,
+.dark .ql-container {
+  background-color: #141414;
+  border-color: #303030;
+  color: #e5e7eb;
+}
+
+.dark .ql-editor {
+  color: #e5e7eb;
+  min-height: 180px;
+}
+
+.dark .ql-editor.ql-blank::before {
+  color: #6b7280;
+  font-style: normal;
+}
+
+.dark .ql-stroke {
+  stroke: #9ca3af;
+}
+
+.dark .ql-fill {
+  fill: #9ca3af;
+}
+
+.dark .ql-picker {
+  color: #9ca3af;
+}
+
+.dark .ql-picker-options {
+  background-color: #1f1f1f;
+  border: 1px solid #303030;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.dark .ql-picker-item {
+  color: #9ca3af;
+}
+
+.dark .ql-picker-item:hover,
+.dark .ql-picker-item.ql-selected {
+  color: #3b82f6;
+}
+
+.dark .ql-toolbar button:hover,
+.dark .ql-toolbar button:focus,
+.dark .ql-toolbar button.ql-active,
+.dark .ql-toolbar .ql-picker-label:hover,
+.dark .ql-toolbar .ql-picker-label.ql-active {
+  color: #3b82f6;
+}
+
+.dark .ql-toolbar button:hover .ql-stroke,
+.dark .ql-toolbar button:focus .ql-stroke,
+.dark .ql-toolbar button.ql-active .ql-stroke,
+.dark .ql-toolbar .ql-picker-label:hover .ql-stroke,
+.dark .ql-toolbar .ql-picker-label.ql-active .ql-stroke,
+.dark .ql-toolbar .ql-picker-item:hover .ql-stroke,
+.dark .ql-toolbar .ql-picker-item.ql-selected .ql-stroke {
+  stroke: #3b82f6;
+}
+
+.dark .ql-toolbar button:hover .ql-fill,
+.dark .ql-toolbar button:focus .ql-fill,
+.dark .ql-toolbar button.ql-active .ql-fill,
+.dark .ql-toolbar .ql-picker-label:hover .ql-fill,
+.dark .ql-toolbar .ql-picker-label.ql-active .ql-fill,
+.dark .ql-toolbar .ql-picker-item:hover .ql-fill,
+.dark .ql-toolbar .ql-picker-item.ql-selected .ql-fill {
+  fill: #3b82f6;
+}
+
