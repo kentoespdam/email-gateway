@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const failed = transactions.filter((t) => t.status === 'failed').length
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
       <Row gutter={16}>
         <Col span={6}><MetricCard title="Total" value={total} prefixIcon={<MailOutlined />} color="#1890ff" /></Col>
         <Col span={6}><MetricCard title="Delivered" value={delivered} prefixIcon={<CheckCircleOutlined />} color="#52c41a" /></Col>

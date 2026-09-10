@@ -99,7 +99,7 @@ export default function ApiKeysPage() {
     {
       title: 'ID',
       dataIndex: 'id',
-      width: 100,
+      width: 120,
       render: (id: string) => <Typography.Text code>{id.slice(0, 8)}…</Typography.Text>,
     },
     {
