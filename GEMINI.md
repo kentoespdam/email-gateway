@@ -22,6 +22,7 @@
   - **Ponytail**: WAJIB load skill `/ponytail` sebelum modifikasi kode.
   - **Issue Tracking (Beads/bd)**: Klaim tugas (`bd update <id> --claim`), tutup tugas (`bd close <id>`). DILARANG membuat todo list manual.
   - **GitNexus First**: WAJIB `gitnexus_impact` & `gitnexus_query` sebelum eksplorasi atau modifikasi.
+  - **Sandbox Policy**: WAJIB gunakan `BypassSandbox: true` untuk semua perintah `git` dan `bd`.
 
 - **File Size & Modularity (Token Conservation)**:
   - Target: 150 – 250 LOC per file.
@@ -32,5 +33,5 @@
 
 - **Session Completion & Checklist**:
   - Jalankan `gitnexus_detect_changes()` dan `uv run pytest`.
-  - WAJIB update `CHECKLIST.md` dan push: `git pull --rebase` && `git push`.
+  - WAJIB update `CHECKLIST.md` dan push: `git pull --rebase` && `git push` (WAJIB gunakan `BypassSandbox: true`).
   - Rujuk `CODING_RULES.md` & `CHECKLIST.md` untuk standar detail.
