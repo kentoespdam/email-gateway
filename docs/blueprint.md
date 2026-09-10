@@ -319,7 +319,7 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-pgadminpassword}
-    ports: ["88:80"]
+    ports: ["${PGADMIN_PORT:-88}:80"]
     volumes: ["pgadmin_data:/var/lib/pgadmin"]
     depends_on: [postgres]
 
@@ -339,14 +339,14 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme123}
-    ports: ["8000:8000"]
+    ports: ["${APP_PORT:-8000}:8000"]
     depends_on: [postgres, redis]
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports: ["3000:80"]
+    ports: ["${FRONTEND_PORT:-3000}:80"]
     depends_on: [api]
 
 volumes:
