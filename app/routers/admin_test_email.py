@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app import database
 from app.admin_auth import require_admin_session
-from app.models import AdminUser, ApiKey
+from app.models import AdminUser, ApiKey, MailTransaction
 from app.schemas import EmailPayload, SendAcceptedResponse
 from worker.tasks import send_email as send_email_task
 
@@ -23,6 +23,7 @@ class TestEmailRequest(EmailPayload):
 def proxy_test_send(
     payload: TestEmailRequest, _: AdminUser = AdminUserDep
 ) -> SendAcceptedResponse:
+    task_id = str(uuid.uuid4())
     with database.SessionLocal() as db:
         api_key = db.get(ApiKey, payload.api_key_id)
         if api_key is None:
@@ -34,7 +35,20 @@ def proxy_test_send(
                 detail="From address not in whitelist"
             )
 
-    task_id = str(uuid.uuid4())
+        db.add(
+            MailTransaction(
+                task_id=task_id,
+                client_id=api_key.id,
+                from_address=payload.from_address,
+                to_addresses=list(payload.to),
+                cc_addresses=[str(a) for a in payload.cc],
+                subject=payload.subject,
+                attachment_count=len(payload.attachments),
+                status="queued",
+            )
+        )
+        db.commit()
+
     # Send email using task with the payload directly
     send_email_task.delay(task_id, payload.model_dump(mode="json"))
     return SendAcceptedResponse(task_id=task_id)

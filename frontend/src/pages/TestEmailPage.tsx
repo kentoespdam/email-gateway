@@ -20,6 +20,7 @@ export default function TestEmailPage() {
   const [form] = Form.useForm()
   const [contentMode, setContentMode] = useState<'text' | 'html'>('text')
   const [taskId, setTaskId] = useState<string | null>(null)
+  const [activeApiKeyToken, setActiveApiKeyToken] = useState<string | null>(null)
 
   const { data: keys = [] } = useQuery({
     queryKey: ['api-keys'],
@@ -27,9 +28,14 @@ export default function TestEmailPage() {
   })
 
   const { data: status, isFetching } = useQuery({
-    queryKey: ['email-status', taskId],
-    queryFn: async () => (await api.get(`/api/v1/emails/${taskId}`)).data,
-    enabled: !!taskId,
+    queryKey: ['email-status', taskId, activeApiKeyToken],
+    queryFn: async () =>
+      (
+        await api.get(`/api/v1/emails/${taskId}`, {
+          headers: activeApiKeyToken ? { 'X-API-Key': activeApiKeyToken } : undefined,
+        })
+      ).data,
+    enabled: !!taskId && !!activeApiKeyToken,
     refetchInterval: (query) => (query.state.data?.status === 'queued' ? 2000 : false),
   })
 
@@ -52,10 +58,13 @@ export default function TestEmailPage() {
   })
 
   const onFinish = (values: any) => {
+    const selected = keys.find((k) => k.id === values.api_key_id)
+    if (selected) setActiveApiKeyToken(selected.key_token)
+
     // Map 'to' input to 'to' array for payload matching EmailPayload schema
     const payload = {
       ...values,
-      to: typeof values.to === 'string' ? values.to.split(',').map((s: string) => s.trim()) : values.to
+      to: typeof values.to === 'string' ? values.to.split(',').map((s: string) => s.trim()) : values.to,
     }
     sendEmail.mutate(payload)
   }

@@ -1,7 +1,7 @@
 import uuid
 from fastapi.testclient import TestClient
 from app.main import app
-from app.models import ApiKey, AdminUser
+from app.models import ApiKey, AdminUser, MailTransaction
 from app.database import SessionLocal
 from app.routers import admin_test_email
 
@@ -41,6 +41,14 @@ def test_test_email_proxy(db, monkeypatch):
         )
         assert r.status_code == 202
         assert "task_id" in r.json()
+        task_id = r.json()["task_id"]
+
+        with db() as session:
+            tx = session.query(MailTransaction).filter_by(task_id=task_id).first()
+            assert tx is not None
+            assert tx.client_id == api_key_id
+            assert tx.status == "queued"
+            assert tx.from_address == "test@example.com"
         
         # Invalid whitelist
         r = http.post(
