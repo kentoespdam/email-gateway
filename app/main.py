@@ -13,7 +13,7 @@ from app.config import settings
 from app.database import SessionLocal
 from app.logging_setup import configure_logging
 from app.models import AdminUser, MailTransaction
-from app.routers import admin_api_keys, admin_auth, admin_transactions, admin_users
+from app.routers import admin_api_keys, admin_auth, admin_transactions, admin_users, admin_test_email
 from app.schemas import EmailPayload, SendAcceptedResponse, StatusResponse
 from app.security import Client, authorize_sender, require_client
 from worker.tasks import send_email as send_email_task
@@ -99,6 +99,7 @@ def create_app() -> FastAPI:
     application.include_router(admin_users.router)
     application.include_router(admin_api_keys.router)
     application.include_router(admin_transactions.router)
+    application.include_router(admin_test_email.router)
     return application
 
 
