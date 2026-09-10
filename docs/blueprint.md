@@ -295,6 +295,8 @@ def _update_status(task_id, status, delivered_at=None, error=None, retry_count=N
 
 ### 7. Docker Compose (docker-compose.yml)
 
+Service `pgadmin` menggunakan profile `development` sehingga tidak otomatis berjalan saat `docker compose up -d` biasa, menghemat resource jika hanya dibutuhkan saat debugging atau inspeksi database. Jalankan dengan `docker compose --profile development up -d` atau `make docker-up-dev`.
+
 ```yaml
 services:
   redis:
@@ -309,6 +311,19 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports: ["5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin_web
+    restart: always
+    profiles:
+      - development
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-pgadminpassword}
+    ports: ["88:80"]
+    volumes: ["pgadmin_data:/var/lib/pgadmin"]
+    depends_on: [postgres]
 
   celery_worker:
     build: .

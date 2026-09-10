@@ -1,4 +1,4 @@
-.PHONY: help install install-frontend dev dev-frontend build build-frontend lint lint-frontend test typecheck db-migrate db-rollback db-generate clean flush redis-shell postgres-psql docker-up docker-down docker-logs setup
+.PHONY: help install install-frontend dev dev-frontend build build-frontend lint lint-frontend test typecheck db-migrate db-rollback db-generate clean flush redis-shell postgres-psql docker-up docker-up-dev docker-down docker-logs setup
 
 APP_DIR := .
 FRONTEND_DIR := frontend
@@ -17,6 +17,7 @@ help:
 	@echo "  make build-frontend       Build frontend Docker image"
 	@echo "  make build-prod           Build production images tanpa cache (api + frontend)"
 	@echo "  make docker-up            Start full stack via docker-compose"
+	@echo "  make docker-up-dev        Start full stack with development profile (includes pgadmin)"
 	@echo "  make docker-down          Stop full stack and remove containers"
 	@echo "  make docker-logs          Stream docker-compose logs"
 	@echo ""
@@ -92,6 +93,9 @@ redis-shell:
 
 docker-up:
 	docker compose up -d --build
+
+docker-up-dev:
+	docker compose --profile development up -d --build
 
 docker-down:
 	docker compose down

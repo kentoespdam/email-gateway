@@ -16,6 +16,8 @@ HTTP, queues them, and delivers them via SMTP (connection-per-task).
 ```bash
 uv sync                      # install dependencies
 docker compose up -d         # Jalankan DB, Redis, Worker, API (8000), FE (3000)
+# Opsi stack development (termasuk pgAdmin):
+# docker compose --profile development up -d (atau: make docker-up-dev)
 export DATABASE_URL=postgresql+psycopg2://gateway:gateway@localhost:5432/email_gateway
 uv run alembic upgrade head  # create tables
 uv run scripts/seed_api_key.py  # seed an API key
@@ -37,6 +39,22 @@ cd frontend
 bun install
 bun dev          # buka http://localhost:5173
 ```
+
+## Database Management (pgAdmin)
+
+pgAdmin disediakan untuk mempermudah manajemen database PostgreSQL melalui UI web menggunakan profile Docker Compose `development`.
+
+### Menjalankan pgAdmin
+```bash
+docker compose --profile development up -d
+# atau menggunakan Makefile:
+make docker-up-dev
+```
+
+### Akses & Kredensial
+- **URL**: [http://localhost:88](http://localhost:88)
+- **Email Default (`PGADMIN_DEFAULT_EMAIL`)**: `admin@example.com`
+- **Password Default (`PGADMIN_DEFAULT_PASSWORD`)**: `pgadminpassword`
 
 ## Testing
 
