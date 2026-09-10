@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Button, Form, Input, Select, Radio, message, Card, Descriptions, Badge } from 'antd'
+import { Button, Form, Input, Select, message, Badge, Segmented, Alert } from 'antd'
 import { useQuery, useMutation } from '@tanstack/react-query'
+import { SendOutlined, CopyOutlined } from '@ant-design/icons'
 import ReactQuill from 'react-quill-new'
 import 'quill/dist/quill.snow.css'
 import api from '../api/client'
@@ -27,7 +28,10 @@ export default function TestEmailPage() {
     queryFn: async () => (await api.get<ApiKey[]>('/admin/api-keys')).data,
   })
 
-  const { data: status, isFetching } = useQuery({
+  const selectedKey = Form.useWatch('api_key_id', form)
+  const keyInfo = keys.find(k => k.id === selectedKey)
+
+  const { data: status } = useQuery({
     queryKey: ['email-status', taskId, activeApiKeyToken],
     queryFn: async () =>
       (
@@ -60,8 +64,6 @@ export default function TestEmailPage() {
   const onFinish = (values: any) => {
     const selected = keys.find((k) => k.id === values.api_key_id)
     if (selected) setActiveApiKeyToken(selected.key_token)
-
-    // Map 'to' input to 'to' array for payload matching EmailPayload schema
     const payload = {
       ...values,
       to: typeof values.to === 'string' ? values.to.split(',').map((s: string) => s.trim()) : values.to,
@@ -77,60 +79,58 @@ export default function TestEmailPage() {
       </div>
       <Form form={form} layout="vertical" onFinish={onFinish} className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#141414] shadow-sm mb-6">
         <Form.Item name="api_key_id" label="API Key" rules={[{ required: true }]}>
-          <Select
-            options={keys.map((k) => ({ value: k.id, label: k.client_name }))}
-          />
+          <Select size="large" placeholder="Select API Key" options={keys.map((k) => ({ value: k.id, label: k.client_name }))} />
         </Form.Item>
         <Form.Item name="from_address" label="From Address" rules={[{ required: true }]}>
-          <Input />
+          <Input size="large" placeholder="e.g. sender@example.com" />
         </Form.Item>
-        <Form.Item name="to" label="To (comma-separated)" rules={[{ required: true }]}>
-          <Select mode="tags" style={{ width: '100%' }} />
+        {keyInfo && (
+          <div className="mb-4 p-3 bg-gray-50 dark:bg-[#1f1f1f] rounded border border-gray-100 dark:border-gray-800">
+            <p className="text-xs text-gray-500 mb-2">Allowed Addresses (Click to use):</p>
+            <div className="flex flex-wrap gap-2">
+              {keyInfo.allowed_from_addresses.map(addr => (
+                <button type="button" key={addr} onClick={() => form.setFieldValue('from_address', addr)} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">{addr}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        <Form.Item name="to" label="To" rules={[{ required: true }]}>
+          <Select mode="tags" size="large" placeholder="e.g. recipient@example.com (press Enter)" />
         </Form.Item>
         <Form.Item name="subject" label="Subject" rules={[{ required: true }]}>
-          <Input />
+          <Input size="large" placeholder="e.g. Test Email Subject" />
         </Form.Item>
-        <Form.Item name="content_mode" label="Content Mode" initialValue="text">
-          <Radio.Group onChange={(e) => setContentMode(e.target.value)}>
-            <Radio.Button value="text">Text</Radio.Button>
-            <Radio.Button value="html">HTML</Radio.Button>
-          </Radio.Group>
+        <Form.Item label="Content Mode">
+          <Segmented block size="large" options={[{ label: 'Plain Text', value: 'text' }, { label: 'Rich HTML (Quill)', value: 'html' }]} value={contentMode} onChange={(v) => setContentMode(v as 'text' | 'html')} className="mb-4" />
         </Form.Item>
         {contentMode === 'text' ? (
           <Form.Item name="text_content" label="Content">
-            <Input.TextArea rows={6} />
+            <Input.TextArea size="large" rows={6} placeholder="Enter your email content..." />
           </Form.Item>
         ) : (
           <Form.Item name="html_content" label="Content">
-            <ReactQuill
-              theme="snow"
-              modules={quillModules}
-              placeholder="Write email HTML content here..."
-            />
+            <ReactQuill theme="snow" modules={quillModules} placeholder="Write email HTML content here..." />
           </Form.Item>
         )}
-        <Button type="primary" htmlType="submit" loading={sendEmail.isPending} className="w-full sm:w-auto h-11 text-base font-medium">Send Test Email</Button>
+        <Button type="primary" htmlType="submit" size="large" block loading={sendEmail.isPending} icon={<SendOutlined />} className="h-12 text-base font-semibold rounded-xl">Send Test Email</Button>
       </Form>
       {taskId && status && (
-        <Card title="Status" extra={isFetching && 'Polling...'}>
-          <Descriptions
-            column={1}
-            items={[
-              { key: 'task_id', label: 'Task ID', children: status.task_id },
-              {
-                key: 'status',
-                label: 'Status',
-                children: (
-                  <Badge
-                    status={status.status === 'sent' ? 'success' : status.status === 'failed' ? 'error' : 'processing'}
-                    text={status.status}
-                  />
-                ),
-              },
-              { key: 'error', label: 'Error', children: status.error_message || '-' },
-            ]}
-          />
-        </Card>
+        <Alert
+          type={status.status === 'sent' ? 'success' : status.status === 'failed' ? 'error' : 'info'}
+          message={
+            <div className="flex justify-between items-center">
+              <span>Task ID: {status.task_id}</span>
+              <Button icon={<CopyOutlined />} size="small" onClick={() => navigator.clipboard.writeText(status.task_id)}>Copy</Button>
+            </div>
+          }
+          description={
+            <div className="mt-2">
+              <p>Status: <Badge status={status.status === 'sent' ? 'success' : status.status === 'failed' ? 'error' : 'processing'} text={status.status} /></p>
+              {status.error_message && <p className="text-xs font-mono mt-2 bg-white/50 p-2 rounded">{status.error_message}</p>}
+            </div>
+          }
+          showIcon
+        />
       )}
     </div>
   )
