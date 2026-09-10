@@ -59,6 +59,9 @@ dmypy.json
 !.env.example
 *.local
 
+# Docker compose overrides
+docker-compose.override.yml
+
 # AI / Assistant tools
 .agents/
 .claude/

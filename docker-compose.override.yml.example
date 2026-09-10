@@ -1,0 +1,11 @@
+# Template override untuk development lokal
+# Salin file ini ke docker-compose.override.yml
+# Docker Compose akan otomatis menggabungkannya saat menjalankan `docker compose up`
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"

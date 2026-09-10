@@ -22,7 +22,12 @@ make db-migrate              # create tables via docker container
 make db-seed                 # seed an API key via docker container
 ```
 
-> **Catatan Jaringan & Port:** Port PostgreSQL (5432) dan Redis (6379) tidak di-expose ke host dan hanya dapat diakses melalui internal Docker network. Gunakan `make db-shell` / `make redis-shell` atau container interaktif jika ingin berinteraksi dari host.
+> **Catatan Jaringan & Port:** Secara default, port PostgreSQL (5432) dan Redis (6379) tidak di-expose ke host dan hanya dapat diakses melalui internal Docker network. Untuk development lokal (mengekspos port 5432 dan 6379 ke host), buat file `docker-compose.override.yml`:
+> ```bash
+> cp docker-compose.override.yml.example docker-compose.override.yml
+> docker compose up -d
+> ```
+> Docker Compose akan otomatis menggabungkan konfigurasi override tersebut saat menjalankan `docker compose up`. Jika tidak menggunakan override, gunakan `make db-shell` / `make redis-shell`.
 
 ## Dashboard (Admin UI)
 Dashboard dapat diakses di http://localhost:3000.
@@ -31,7 +36,12 @@ Login pertama menggunakan `ADMIN_USERNAME` dan `ADMIN_PASSWORD` dari env.
 
 ### Local Development (Tanpa Docker)
 
+Jika menjalankan backend di host namun menggunakan database & Redis dari Docker Compose, pastikan port PostgreSQL (5432) dan Redis (6379) sudah di-expose menggunakan `docker-compose.override.yml`.
+
 ```bash
+# Jalankan PostgreSQL & Redis dengan port exposed via override
+docker compose up -d postgres redis
+
 # Backend
 uv run uvicorn app.main:app --port 8000
 
