@@ -1,9 +1,61 @@
-.venv
+# Version Control & Issue Tracking
 .git
+.gitignore
+.gitattributes
+.beads
+.dolt
+
+# Python Virtual Environment & Bytecode
+.venv
+env
+venv
 __pycache__
-*.pyc
+*.py[cod]
+*$py.class
+
+# Testing & Quality Checks
 .pytest_cache
+.ruff_cache
+.mypy_cache
 .coverage
+.coverage.*
 htmlcov
+tests/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+
+# Frontend & Node (built separately in frontend/ context)
 frontend
 node_modules
+
+# Agents & AI Tooling Metadata
+.agents
+.claude
+.commandcode
+.gitnexus
+.antigravityignore
+
+# IDEs & System Files
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Documentation & Development Scripts
+docs/
+*.md
+
+# Logs & Local Databases
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker Files
+Dockerfile*
+docker-compose*.yml

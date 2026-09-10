@@ -1,5 +1,36 @@
+# Dependencies & Build Output
 node_modules
 dist
-*.log
+
+# Version Control & OS Files
+.git
+.gitignore
+.DS_Store
+Thumbs.db
+
+# IDEs & Editors
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment Variables & Secrets
 .env
 .env.*
+!.env.example
+
+# Logs & Coverage
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage
+
+# Tests & Documentation
+tests/
+*.test.*
+*.spec.*
+README.md
+
+# Docker Files
+Dockerfile*
