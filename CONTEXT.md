@@ -47,7 +47,7 @@ _Avoid_: state, result, status email
 ### Administrasi & Dashboard
 
 **Dashboard**:
-Antarmuka web internal (React SPA) untuk mengelola API Key, memantau Mail Transaction, dan mengelola AdminUser. Hanya bisa diakses oleh AdminUser.
+Antarmuka web internal (React SPA) untuk mengelola API Key, memantau Mail Transaction, mengelola AdminUser, dan menguji pengiriman Email. Hanya bisa diakses oleh AdminUser.
 _Avoid_: admin panel, backoffice, UI
 
 **AdminUser**:
