@@ -18,9 +18,11 @@ uv sync                      # install dependencies
 docker compose up -d         # Jalankan DB, Redis, Worker, API (8000), FE (3000)
 # Opsi stack development (termasuk pgAdmin):
 # docker compose --profile development up -d (atau: make docker-up-dev)
-make db-migrate              # create tables via docker container
+# Migrasi tabel kini berjalan otomatis saat api menyala berkat healthcheck database
 make db-seed                 # seed an API key via docker container
 ```
+
+> **Catatan Migrasi Database:** Migrasi tabel (`alembic upgrade head`) kini berjalan otomatis saat service `api` menyala berkat healthcheck database (`condition: service_healthy`). Perintah `make db-migrate` tetap dapat dijalankan secara manual jika diperlukan.
 
 > **Catatan Jaringan & Port:** Secara default, port PostgreSQL (5432) dan Redis (6379) tidak di-expose ke host dan hanya dapat diakses melalui internal Docker network. Untuk development lokal (mengekspos port 5432 dan 6379 ke host), buat file `docker-compose.override.yml`:
 > ```bash

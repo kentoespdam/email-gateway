@@ -301,6 +301,11 @@ Service `pgadmin` menggunakan profile `development` sehingga tidak otomatis berj
 services:
   redis:
     image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
   postgres:
     image: postgres:16
@@ -309,6 +314,11 @@ services:
       POSTGRES_USER: gateway
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gateway} -d ${POSTGRES_DB:-email_gateway}"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -328,11 +338,15 @@ services:
     command: celery -A worker.celery_app worker --loglevel=info
     environment:
       REDIS_URL: redis://redis:6379/0
-    depends_on: [redis, postgres]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   api:
     build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: sh -c "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql+psycopg2://gateway:gateway@postgres:5432/email_gateway
       REDIS_URL: redis://redis:6379/0
@@ -340,7 +354,11 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme123}
     ports: ["${APP_PORT:-8000}:8000"]
-    depends_on: [postgres, redis]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   frontend:
     build:
