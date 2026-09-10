@@ -101,6 +101,18 @@ export default function ApiKeysPage() {
       width: 100,
       render: (id: string) => <Typography.Text code>{id.slice(0, 8)}…</Typography.Text>,
     },
+    {
+      title: 'Key Token',
+      dataIndex: 'key_token',
+      render: (token: string) => (
+        <Input.Password
+          value={token}
+          readOnly
+          style={{ width: 200 }}
+          iconRender={(visible) => (visible ? <Typography.Text copyable={{ text: token }} /> : <></>)}
+        />
+      ),
+    },
     { title: 'Client', dataIndex: 'client_name' },
     {
       title: 'Allowed From',

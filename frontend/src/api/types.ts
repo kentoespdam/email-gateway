@@ -7,6 +7,7 @@ export interface ApiKey {
   is_active: boolean
   expires_at: string | null
   created_at: string | null
+  key_token: string
 }
 
 /** Create response only: key_token is shown exactly once. */
