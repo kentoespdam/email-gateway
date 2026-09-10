@@ -72,11 +72,13 @@ Urutan claim berdasarkan dependency antar issue.
 
 ## Group 5 — Frontend Scaffold (claim paralel dengan Group 1)
 
-- [ ] **FE-1** `feat: scaffold frontend project`
+- [x] **FE-1** `feat: scaffold frontend project`
   - `bun create vite frontend --template react-ts`
-  - Install: `antd`, `@tanstack/react-query`, `react-router-dom`, `axios`
+  - Install: `antd`, `@tanstack/react-query`, `react-router-dom`, `axios`, `@types/node`
   - Setup: Ant Design theme, React Query Provider, Router
   - Tambah `frontend/Dockerfile` (multi-stage: build → nginx serve)
+  - Tambah `frontend/.env.example`, `frontend/.dockerignore`, `frontend/.gitignore`
+  - Setup `src/api/client.ts` (axios `withCredentials: true`, `VITE_API_URL`)
 
 ---
 
