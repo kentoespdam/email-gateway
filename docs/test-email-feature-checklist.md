@@ -6,7 +6,7 @@ Rujuk ADR: `docs/adr/0007-expose-api-key-token-in-get-response.md` dan `docs/adr
 ## Urutan Pengerjaan (Dependency Order)
 
 ### Phase 1 — Backend (paralel)
-- [ ] email-gateway-mzh — [BE] Expose `key_token` in GET /admin/api-keys response
+- [x] email-gateway-mzh — [BE] Expose `key_token` in GET /admin/api-keys response
 - [ ] email-gateway-4an — [BE] Add POST /admin/emails/test-send proxy endpoint
 
 ### Phase 2 — Frontend Setup (setelah Phase 1)

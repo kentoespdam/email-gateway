@@ -40,7 +40,7 @@ def test_admin_flow(db, monkeypatch):
         r = http.get("/admin/users")
         assert {u["username"] for u in r.json()} == {"root", "ops"}
 
-        # API keys: token shown once, then never again.
+        # API keys: token exposed in GET response.
         r = http.post(
             "/admin/api-keys",
             json={"client_name": "billing", "allowed_from_addresses": ["billing@x.com"]},
@@ -50,7 +50,7 @@ def test_admin_flow(db, monkeypatch):
         assert created["key_token"]
         key_id = created["id"]
         r = http.get("/admin/api-keys")
-        assert all("key_token" not in k for k in r.json())
+        assert any(k["id"] == key_id and k["key_token"] == created["key_token"] for k in r.json())
         r = http.patch(f"/admin/api-keys/{key_id}", json={"is_active": False})
         assert r.status_code == 200 and r.json()["is_active"] is False
 

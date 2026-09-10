@@ -36,6 +36,7 @@ def _to_response(key: ApiKey) -> ApiKeyResponse:
         client_name=key.client_name,
         allowed_from_addresses=list(key.allowed_from_addresses or []),
         is_active=key.is_active,
+        key_token=key.key_token,
         expires_at=key.expires_at.isoformat() if key.expires_at else None,
         created_at=key.created_at.isoformat() if key.created_at else None,
     )
@@ -62,7 +63,7 @@ def create_api_key(
         db.add(key)
         db.commit()
         return ApiKeyCreatedResponse(
-            **_to_response(key).model_dump(),
+            **_to_response(key).model_dump(exclude={"key_token"}),
             key_token=key.key_token,  # returned only here, never again
         )
 

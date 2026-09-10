@@ -71,6 +71,7 @@ class ApiKeyResponse(BaseModel):
     client_name: str
     allowed_from_addresses: list[str]
     is_active: bool
+    key_token: str | None = None
     expires_at: str | None = None
     created_at: str | None = None
 
