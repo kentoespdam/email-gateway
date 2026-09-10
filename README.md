@@ -15,45 +15,38 @@ HTTP, queues them, and delivers them via SMTP (connection-per-task).
 
 ```bash
 uv sync                      # install dependencies
-docker compose up -d         # PostgreSQL 16 + Redis 7
+docker compose up -d         # Jalankan DB, Redis, Worker, API (8000), FE (3000)
 export DATABASE_URL=postgresql+psycopg2://gateway:gateway@localhost:5432/email_gateway
 uv run alembic upgrade head  # create tables
-uv run scripts/seed_api_key.py  # seed an API key (see below)
+uv run scripts/seed_api_key.py  # seed an API key
 ```
 
 ## Dashboard (Admin UI)
+Dashboard dapat diakses di http://localhost:3000.
 
-Dashboard memerlukan env var tambahan di `.env`:
+Login pertama menggunakan `ADMIN_USERNAME` dan `ADMIN_PASSWORD` dari env.
 
-```bash
-ALLOWED_ORIGINS=http://localhost:5173
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=changeme123   # ganti sebelum deploy
-```
-
-Jalankan Dashboard (development, tanpa Docker):
+### Local Development (Tanpa Docker)
 
 ```bash
+# Backend
+uv run uvicorn app.main:app --port 8000
+
+# Frontend
 cd frontend
 bun install
 bun dev          # buka http://localhost:5173
 ```
 
-Login pertama menggunakan `ADMIN_USERNAME` dan `ADMIN_PASSWORD` dari env.
-Setelah login, buat AdminUser tambahan dari menu Users.
-
-```
-
-Run the services:
+## Testing
 
 ```bash
-# terminal 1: API
-uv run uvicorn app.main:app --port 8000
+# Backend (Pytest)
+uv run pytest
 
-# terminal 2: worker
-REDIS_URL=redis://localhost:6379/0 \
-SMTP_HOST=smtp.example.com SMTP_PORT=587 SMTP_USE_TLS=true \
-uv run celery -A worker.celery_app worker --loglevel=INFO --pool=solo
+# Frontend (Vitest)
+cd frontend
+npx vitest run
 ```
 
 ## API

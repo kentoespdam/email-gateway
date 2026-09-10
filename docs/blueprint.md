@@ -298,11 +298,11 @@ def _update_status(task_id, status, delivered_at=None, error=None, retry_count=N
 ```yaml
 services:
   redis:
-    image: redis:7-alpine
+    image: redis:7
     ports: ["6379:6379"]
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16
     environment:
       POSTGRES_DB: email_gateway
       POSTGRES_USER: gateway
@@ -310,13 +310,34 @@ services:
     ports: ["5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
 
-  worker:
+  celery_worker:
     build: .
-    command: uv run celery -A app.worker.celery_app worker --loglevel=info --concurrency=4
-    env_file: .env
+    command: celery -A worker.celery_app worker --loglevel=info
+    environment:
+      REDIS_URL: redis://redis:6379/0
     depends_on: [redis, postgres]
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    environment:
+      DATABASE_URL: postgresql+psycopg2://gateway:gateway@postgres:5432/email_gateway
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme123}
+    ports: ["8000:8000"]
+    depends_on: [postgres, redis]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports: ["3000:80"]
+    depends_on: [api]
 
 volumes:
   pgdata:
+  pgadmin_data:
 ```
 
