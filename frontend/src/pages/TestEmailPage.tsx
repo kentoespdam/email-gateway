@@ -28,7 +28,16 @@ export default function TestEmailPage() {
       message.success('Email test submitted')
       setTaskId(res.data.task_id)
     },
-    onError: () => message.error('Failed to submit email test'),
+    onError: (error: any) => {
+      const detail = error.response?.data?.detail
+      if (typeof detail === 'string') {
+        message.error(detail)
+      } else if (Array.isArray(detail)) {
+        message.error(detail.map((e: any) => e.msg).join(', '))
+      } else {
+        message.error('Failed to submit email test')
+      }
+    },
   })
 
   const onFinish = (values: any) => {
