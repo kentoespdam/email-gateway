@@ -127,8 +127,7 @@ export default function LogsPage() {
         />
         <Select
           allowClear
-          showSearch
-          optionFilterProp="label"
+          showSearch={{ optionFilterProp: 'label' }}
           placeholder="API Key"
           style={{ width: 180 }}
           options={apiKeys.map((k) => ({ value: k.id, label: k.client_name }))}
