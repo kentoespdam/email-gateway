@@ -1,4 +1,4 @@
-.PHONY: help install install-frontend dev dev-frontend build build-frontend lint lint-frontend test typecheck db-migrate db-rollback db-generate db-seed clean flush redis-shell postgres-psql docker-up docker-up-dev docker-down docker-logs setup
+.PHONY: help install install-frontend dev dev-frontend build build-frontend lint lint-frontend test typecheck db-migrate db-rollback db-generate db-seed db-admin clean flush redis-shell postgres-psql docker-up docker-up-dev docker-down docker-logs setup
 
 APP_DIR := .
 FRONTEND_DIR := frontend
@@ -32,6 +32,7 @@ help:
 	@echo "  make db-rollback          Run alembic downgrade -1"
 	@echo "  make db-generate          Run alembic revision --autogenerate (read heads)"
 	@echo "  make db-seed              Seed API key into database"
+	@echo "  make db-admin             Seed admin user into database"
 	@echo "  make db-shell             Open psql for postgres service"
 	@echo "  make redis-shell          Open redis-cli for redis service"
 	@echo ""
@@ -88,6 +89,9 @@ db-generate:
 
 db-seed:
 	docker compose run --rm api uv run scripts/seed_api_key.py
+
+db-admin:
+	docker compose run --rm api uv run scripts/seed_admin.py
 
 db-shell:
 	docker compose exec postgres psql -U $(POSTGRES_USER:%=%) -d $(POSTGRES_DB:%=%)

@@ -81,6 +81,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
     ports:
       - "${FRONTEND_PORT:-3000}:80"
     depends_on:
